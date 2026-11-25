@@ -68,7 +68,7 @@ export function filterMunicipalities(municipalities, records, { query = '', regi
 export function shareUrl(records, pageUrl) {
   const { score, touched } = summarize(records);
   const url = new URL('https://twitter.com/intent/tweet');
-  url.searchParams.set('text', `私の経道値は ${score} / 895 pt！\n北海道 ${touched} / 179 市町村に足あとを残しました。\n次は、どのまちへ行こう。`);
+  url.searchParams.set('text', `私の経道値は ${score} / 895 pt！\n北海道 ${touched} / 179 市町村に足あとを残しました。\nあと${179 - touched}のまちが、あなたを待っています。`);
   url.searchParams.set('hashtags', '経道値');
   const page = new URL(pageUrl);
   if (!['localhost', '127.0.0.1', '[::1]'].includes(page.hostname) && /^https?:$/.test(page.protocol)) {
