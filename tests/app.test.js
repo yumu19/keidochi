@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
+import { resolveObjectURL } from 'node:buffer';
 import { STORAGE_KEY } from '../src/model.js';
 
 test('application interactions and persistent records', async t => {
@@ -195,12 +196,35 @@ test('application interactions and persistent records', async t => {
     assert.match($('#save-status').textContent, /保存しました/);
   });
 
-  await t.test('export downloads a JSON backup with a portable filename', () => {
+  let exportedJson;
+  await t.test('export downloads the stored records and notes as a portable JSON file', async () => {
     $('.data-open').click();
+    assert.equal($('#data-dialog').open, true);
     $('#export-data').click();
     assert.match(clickedAnchor.href, /^blob:/);
     assert.match(clickedAnchor.download, /^keidochi-backup-\d{4}-\d{2}-\d{2}\.json$/);
+    const blob = resolveObjectURL(clickedAnchor.href);
+    assert.equal(blob.type, 'application/json');
+    exportedJson = await blob.text();
+    const payload = JSON.parse(exportedJson);
+    assert.equal(payload.version, 1);
+    assert.ok(Number.isFinite(Date.parse(payload.exportedAt)));
+    assert.deepEqual(payload.records, stored().records);
     $('#data-dialog').close();
+  });
+
+  await t.test('an exported JSON file restores records and notes to local storage', async () => {
+    const original = JSON.parse(exportedJson).records;
+    selectLevel(1);
+    $('.data-open').click();
+    await importFile(exportedJson);
+    assert.equal($('#import-preview').hidden, false);
+    assert.notDeepEqual(stored().records, original);
+    $('#confirm-import').click();
+    assert.deepEqual(stored().records, original);
+    assert.equal($('#travel-note').value, original['01202'].note);
+    assert.equal($('input[value="3"]').checked, true);
+    assert.equal($('#data-dialog').open, false);
   });
 
   await t.test('invalid backup leaves existing data untouched; valid import requires confirmation', async () => {
