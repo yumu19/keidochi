@@ -154,29 +154,40 @@ function createMap() {
   const landmarks = new Set([
     '稚内市', '名寄市', '留萌市', '紋別市',
     '網走市', '根室市', '富良野市', '室蘭市',
+    '岩見沢市', '倶知安町', '江差町', '浦河町',
   ]);
   const hiddenLabels = new Set(['江別市']);
-  const labels = municipalities.filter(city => city.name.endsWith('市') && !hiddenLabels.has(city.name) &&
-    (populations[city.name] >= 100000 || landmarks.has(city.name)));
+  const labels = municipalities.filter(city => !hiddenLabels.has(city.name) &&
+    ((city.name.endsWith('市') && populations[city.name] >= 100000) || landmarks.has(city.name)));
   const labelPositions = {
     '小樽市': { dx: -8, dy: -7, anchor: 'end' },
-    '札幌市': { dx: -8, dy: 17, anchor: 'end' },
+    '札幌市': { dx: 8, dy: 17, anchor: 'start' },
+    '苫小牧市': { dx: 7, dy: 18, anchor: 'start' },
     '北見市': { dx: 8, dy: 17, anchor: 'start' },
     '留萌市': { dx: -8, dy: 4, anchor: 'end' },
     '紋別市': { dx: 7, dy: -20, anchor: 'start' },
     '網走市': { dx: -8, dy: -15, anchor: 'end' },
     '室蘭市': { dx: -8, dy: 4, anchor: 'end' },
+    '岩見沢市': { dx: -8, dy: -38, anchor: 'end' },
+    '倶知安町': { dx: -8, dy: 4, anchor: 'end' },
+    '江差町': { dx: -8, dy: 4, anchor: 'end' },
   };
   for (const city of labels) {
     const major = populations[city.name] >= 100000;
     const [x, y] = city.point;
     const { dx, dy, anchor } = labelPositions[city.name] ?? { dx: 7, dy: 4, anchor: 'start' };
+    if (Math.abs(dy) > 28) {
+      $('#map-labels').append(svgElement('line', {
+        x1: x, y1: y, x2: x + dx + 3, y2: y + dy + 7,
+        stroke: '#51717e', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none',
+      }));
+    }
     $('#map-labels').append(svgElement('circle', { cx: x, cy: y, r: major ? 3 : 2.5, class: 'map-label-dot' }));
     const label = svgElement('text', {
       x: x + dx, y: y + dy, 'text-anchor': anchor,
       class: `map-city-label${major ? ' major-city-label' : ''}`, 'data-city-id': city.id,
     });
-    label.textContent = city.name.replace(/市$/, '');
+    label.textContent = city.name.replace(/[市町村]$/, '');
     $('#map-labels').append(label);
   }
   renderMapState();
