@@ -252,7 +252,7 @@ function createLevelUI() {
         $('#save-status span:last-child').textContent = '保存できませんでした。メモをコピーして保管してください';
       }
     });
-    $('#experience-options').append(option);
+    $('#experience-options').prepend(option);
     const legend = document.createElement('div');
     legend.className = 'legend-item';
     legend.dataset.level = index;
