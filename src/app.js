@@ -150,25 +150,20 @@ function createMap() {
   }
   $('#map-shapes').append(fragment);
   const landmarks = new Set([
-    '稚内市', '名寄市', '羽幌町', '留萌市',
-    '紋別市', '網走市', '斜里町', '中標津町', '根室市',
-    '富良野市', '倶知安町', '室蘭市', '新ひだか町', '江差町',
+    '稚内市', '名寄市', '留萌市', '紋別市',
+    '網走市', '根室市', '富良野市', '室蘭市',
   ]);
   const hiddenLabels = new Set(['江別市']);
-  const labels = municipalities.filter(city => !hiddenLabels.has(city.name) &&
+  const labels = municipalities.filter(city => city.name.endsWith('市') && !hiddenLabels.has(city.name) &&
     (populations[city.name] >= 100000 || landmarks.has(city.name)));
   const labelPositions = {
     '小樽市': { dx: -8, dy: -7, anchor: 'end' },
     '札幌市': { dx: -8, dy: 17, anchor: 'end' },
     '北見市': { dx: -8, dy: 17, anchor: 'end' },
-    '羽幌町': { dx: -8, dy: 4, anchor: 'end' },
     '留萌市': { dx: -8, dy: 4, anchor: 'end' },
     '紋別市': { dx: 7, dy: -7, anchor: 'start' },
     '網走市': { dx: -8, dy: -15, anchor: 'end' },
-    '斜里町': { dx: 8, dy: -7, anchor: 'start' },
-    '倶知安町': { dx: -14, dy: 4, anchor: 'end' },
     '室蘭市': { dx: -8, dy: 4, anchor: 'end' },
-    '江差町': { dx: -8, dy: 4, anchor: 'end' },
   };
   for (const city of labels) {
     const major = populations[city.name] >= 100000;
@@ -179,7 +174,7 @@ function createMap() {
       x: x + dx, y: y + dy, 'text-anchor': anchor,
       class: `map-city-label${major ? ' major-city-label' : ''}`, 'data-city-id': city.id,
     });
-    label.textContent = city.name.replace(/[市町村]$/, '');
+    label.textContent = city.name.replace(/市$/, '');
     $('#map-labels').append(label);
   }
   renderMapState();
