@@ -144,6 +144,9 @@ textarea::placeholder,.search-field input::placeholder{color:#6f7e65}
 .search-field,select{height:48px}
 .select-field:after{top:20px}
 .panel-heading p,.city-title p,.city-title>div>span,.list-city-name small,.list-city-level,.map-source{color:#61715d}
+.map-heading-copy{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 16px;min-width:0}
+.map-heading-copy h2{flex-shrink:0;margin:0}
+.map-heading-copy p{margin:0}
 .map-source{padding:0 16px 16px;line-height:1.8}
 .city-list-item{min-height:76px}
 .show-all{min-height:44px}
