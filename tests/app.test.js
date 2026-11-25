@@ -15,6 +15,16 @@ test('application interactions and persistent records', async t => {
   window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new window.Event('close')); };
   let clickedAnchor = null;
   window.HTMLAnchorElement.prototype.click = function () { clickedAnchor = this; };
+  let imageFailure = false;
+  let objectUrlCount = 0;
+  window.URL.createObjectURL = () => `blob:keidochi-test-${++objectUrlCount}`;
+  window.URL.revokeObjectURL = () => {};
+  window.Image = class {
+    set src(value) { queueMicrotask(() => imageFailure ? this.onerror() : this.onload()); }
+  };
+  window.HTMLCanvasElement.prototype.getContext = () => ({ drawImage() {} });
+  window.HTMLCanvasElement.prototype.toBlob = function (callback, type) { callback(new window.Blob(['test-png'], { type })); };
+  const waitForImage = () => new Promise(resolve => setImmediate(resolve));
   const $ = selector => window.document.querySelector(selector);
   const fire = (selector, type) => $(selector).dispatchEvent(new window.Event(type, { bubbles: true }));
   const selectLevel = level => { $(`input[name="experience"][value="${level}"]`).checked = true; fire(`input[name="experience"][value="${level}"]`, 'change'); };
@@ -97,8 +107,18 @@ test('application interactions and persistent records', async t => {
     assert.equal($('#hokkaido-map').getAttribute('viewBox'), originalViewBox);
   });
 
-  await t.test('X share encodes current aggregate results and excludes private notes', () => {
+  await t.test('X share previews a recorded map and retains a text intent fallback', async () => {
     $('#share-top').click();
+    assert.equal($('#share-dialog').open, true);
+    await waitForImage();
+    assert.equal($('#share-preview').hidden, false);
+    assert.equal($('#share-download').disabled, false);
+    assert.equal($('#share-native').hidden, true);
+    assert.match($('#share-instructions').textContent, /自動添付されません/);
+    $('#share-download').click();
+    assert.match(clickedAnchor.href, /^blob:/);
+    assert.match(clickedAnchor.download, /^keidochi-\d{4}-\d{2}-\d{2}\.png$/);
+    $('#share-x').click();
     const url = new URL(clickedAnchor.href);
     assert.equal(url.hostname, 'twitter.com');
     assert.match(url.searchParams.get('text'), /7 \/ 895/);
@@ -107,6 +127,64 @@ test('application interactions and persistent records', async t => {
     assert.ok(!url.href.includes('script'));
     assert.equal(clickedAnchor.target, '_blank');
     assert.match(clickedAnchor.rel, /noopener/);
+    $('#share-dialog').close();
+    assert.equal($('#share-preview').hasAttribute('src'), false);
+  });
+
+  await t.test('native sharing passes the prepared PNG and results directly from a click', async () => {
+    let shared;
+    window.navigator.canShare = data => data.files[0].type === 'image/png';
+    window.navigator.share = async data => { shared = data; };
+    $('#share-top').click();
+    await waitForImage();
+    assert.equal($('#share-native').hidden, false);
+    $('#share-native').click();
+    assert.equal(shared.files.length, 1);
+    assert.equal(shared.files[0].type, 'image/png');
+    assert.match(shared.text, /7 \/ 895/);
+    assert.match(shared.text, /#経道値 #北海道/);
+    assert.ok(!shared.text.includes('スープカレー'));
+    await waitForImage();
+    assert.equal($('#share-dialog').open, false);
+    delete window.navigator.canShare;
+    delete window.navigator.share;
+  });
+
+  await t.test('cancelled native sharing keeps the preview; failures offer manual attachment', async () => {
+    window.navigator.canShare = () => true;
+    window.navigator.share = async () => { throw new window.DOMException('cancelled', 'AbortError'); };
+    $('#share-top').click();
+    await waitForImage();
+    $('#share-native').click();
+    await waitForImage();
+    assert.equal($('#share-dialog').open, true);
+    assert.equal($('#share-error').hidden, true);
+    assert.equal($('#share-native').disabled, false);
+    window.navigator.share = async () => { throw new window.DOMException('not allowed', 'NotAllowedError'); };
+    $('#share-native').click();
+    await waitForImage();
+    assert.equal($('#share-error').hidden, false);
+    assert.equal($('#share-download').disabled, false);
+    $('#share-dialog').close();
+    delete window.navigator.canShare;
+    delete window.navigator.share;
+  });
+
+  await t.test('image generation failure can be retried without losing text sharing', async () => {
+    imageFailure = true;
+    $('#share-bottom').click();
+    await waitForImage();
+    assert.equal($('#share-error').hidden, false);
+    assert.equal($('#share-retry').hidden, false);
+    assert.equal($('#share-download').disabled, true);
+    $('#share-x').click();
+    assert.equal(new URL(clickedAnchor.href).hostname, 'twitter.com');
+    imageFailure = false;
+    $('#share-retry').click();
+    await waitForImage();
+    assert.equal($('#share-error').hidden, true);
+    assert.equal($('#share-preview').hidden, false);
+    $('#share-dialog').close();
   });
 
   await t.test('note edits are automatically persisted without changing municipality', async () => {

@@ -73,7 +73,22 @@
 
   <dialog id="data-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">YOUR DATA</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>旅の記録を管理</h2><p>記録はこのブラウザーのローカルストレージに保存されます。端末の変更やブラウザーのデータ削除に備えて、バックアップを残せます。</p><div class="data-action"><div><h3>バックアップを書き出す</h3><p>経験とメモをJSONファイルで保存します。</p></div><button class="button secondary" id="export-data">書き出す <span data-icon="download"></span></button></div><div class="data-action"><div><h3>バックアップを読み込む</h3><p>現在の記録をファイルの内容に置き換えます。</p></div><button class="button secondary" id="import-open">ファイルを選択 <span data-icon="upload"></span></button><input id="import-data" type="file" accept=".json,application/json" hidden></div><div id="import-preview" class="confirm-box" hidden><p id="import-summary"></p><div><button class="button primary" id="confirm-import">この内容で置き換える</button><button class="button secondary" id="cancel-import">キャンセル</button></div></div><p class="form-error" id="import-error" role="alert" hidden></p><div class="data-action danger-action"><div><h3>すべての記録をリセット</h3><p>経験とメモをすべて削除します。</p></div><button class="text-button danger" id="reset-open">リセット</button></div><div id="reset-confirm" class="confirm-box" hidden><p>すべての記録を削除します。元に戻せません。必要なら先にバックアップを書き出してください。</p><div><button class="button danger-button" id="reset-confirm-button">すべて削除する</button><button class="button secondary" id="reset-cancel">キャンセル</button></div></div></dialog>
 
-  <dialog id="about-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">ABOUT KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>北海道との、距離を縮める。</h2><p>経道値（けいどうち）は、北海道179市町村の旅行経験を記録するアプリです。旅先との関わりの深さを色とポイントで残せます。</p><div class="help-note"><h3>登録不要。このブラウザーに保存。</h3><p>旅行の記録やメモをサーバーへ送信する機能はありません。Xへのシェアでは、経道値と足あとを残した市町村数を共有します。メモは共有されません。</p></div><p>ブラウザーや端末を変えると記録は引き継がれません。データ管理からバックアップを保存・読み込みしてください。プライベートブラウズでは終了時に消える場合があります。</p><p class="dialog-caption">対象の市町村は<a href="https://www.pref.hokkaido.lg.jp/link/shichoson/" target="_blank" rel="noopener noreferrer">北海道公式の179市町村一覧</a>に準拠。札幌市は区を分けず1市として記録します。地図は北海道公開の行政界データを簡略化したもので、境界の厳密な表示を目的としません。</p><button class="button primary close-dialog full-width">閉じる</button></dialog>
+  <dialog id="share-dialog" class="dialog share-dialog" aria-labelledby="share-title">
+    <div class="dialog-top"><span class="eyebrow">SHARE YOUR HOKKAIDO</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div>
+    <h2 id="share-title">地図と一緒に、経道値をシェア</h2>
+    <p id="share-status" role="status">入力済みの地図から画像を作成しています…</p>
+    <img id="share-preview" class="share-preview" width="1200" height="1200" alt="記録した経験の色分け・経道値・凡例を含む北海道の地図" hidden>
+    <p id="share-instructions" class="share-instructions" hidden></p>
+    <p id="share-error" class="form-error" role="alert" hidden></p>
+    <div class="share-actions">
+      <button class="button primary full-width" id="share-native" hidden>画像付きで共有</button>
+      <button class="button secondary" id="share-download" disabled>画像を保存（PNG）</button>
+      <button class="button share-button" id="share-x"><span class="x-icon" aria-hidden="true">𝕏</span>Xの投稿画面を開く</button>
+      <button class="button secondary" id="share-retry" hidden>画像を作り直す</button>
+    </div>
+  </dialog>
+
+  <dialog id="about-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">ABOUT KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>北海道との、距離を縮める。</h2><p>経道値（けいどうち）は、北海道179市町村の旅行経験を記録するアプリです。旅先との関わりの深さを色とポイントで残せます。</p><div class="help-note"><h3>登録不要。このブラウザーに保存。</h3><p>画像の作成と保存はこのブラウザー内で行います。シェアでは経道値・市町村数・経験を色分けした地図画像を共有できます。メモは共有されません。</p></div><p>ブラウザーや端末を変えると記録は引き継がれません。データ管理からバックアップを保存・読み込みしてください。プライベートブラウズでは終了時に消える場合があります。</p><p class="dialog-caption">対象の市町村は<a href="https://www.pref.hokkaido.lg.jp/link/shichoson/" target="_blank" rel="noopener noreferrer">北海道公式の179市町村一覧</a>に準拠。札幌市は区を分けず1市として記録します。地図は北海道公開の行政界データを簡略化したもので、境界の厳密な表示を目的としません。</p><button class="button primary close-dialog full-width">閉じる</button></dialog>
   <div class="toast" id="toast" role="status" hidden></div>
   <noscript><div class="warning">経道値を使うには、ブラウザーのJavaScriptを有効にしてください。</div></noscript>
 </body>

@@ -51,6 +51,12 @@ main{max-width:1600px;padding:0 28px;margin:0 auto}.eyebrow{display:flex;align-i
 .map-city-label{font-size:14px;font-weight:600;fill:#244555;paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;font-family:var(--sans)}
 .map-label-dot{fill:#244555;stroke:white;stroke-width:1.5;pointer-events:none}
 .major-city-label{font-weight:750}
+.share-dialog{max-width:640px}
+.share-dialog #share-status{margin-bottom:14px;font-size:11px}
+.share-preview{display:block;width:100%;height:auto;max-height:52dvh;object-fit:contain;background:#edf5fa;border:1px solid #dbe5df;border-radius:8px}
+.share-dialog .share-instructions{font-size:11px;background:#f0f4e8;border-radius:6px;padding:12px 14px;margin:15px 0;line-height:1.9}
+.share-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.share-actions>.button:not(.full-width){flex:1;min-width:160px}
 .map-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:24px;padding:18px 18px 10px}
 .legend-item{display:flex;align-items:center;gap:7px;font-size:12px;color:#3b5053}
 .legend-item small{font:11px Georgia,serif;color:#66797d}
