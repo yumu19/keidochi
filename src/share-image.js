@@ -27,7 +27,7 @@ export function createShareSvg(map, records, viewBox) {
   }
   for (const label of snapshot.querySelectorAll('.map-city-label')) {
     label.setAttribute('fill', '#244555');
-    label.setAttribute('font-size', '14');
+    label.setAttribute('font-size', '24');
     label.setAttribute('font-weight', label.classList.contains('major-city-label') ? '700' : '600');
     label.setAttribute('stroke', '#ffffff');
     label.setAttribute('stroke-width', '3.5');
@@ -46,27 +46,27 @@ export function createShareSvg(map, records, viewBox) {
   const mapMarkup = new map.ownerDocument.defaultView.XMLSerializer().serializeToString(snapshot);
   const legend = LEVELS.map((level, index) => {
     const x = 107 + index * 169;
-    return `<g transform="translate(${x},1092)"><rect width="22" height="22" rx="5" fill="${level.color}"/><text x="32" y="18" font-size="22" fill="#304b43">${escapeXml(level.label)} <tspan font-size="18" fill="#657c73">${counts[index]}</tspan></text></g>`;
+    return `<g transform="translate(${x},1092)"><rect width="26" height="26" rx="5" fill="${level.color}"/><text x="36" y="23" font-size="28" fill="#304b43">${escapeXml(level.label)} <tspan font-size="24" fill="#657c73">${counts[index]}</tspan></text></g>`;
   }).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
     <rect width="1200" height="1200" fill="#f6f7f1"/>
     <g font-family="Hiragino Kaku Gothic ProN, Yu Gothic, Meiryo, sans-serif">
-      <text x="64" y="79" font-size="40" font-weight="700" fill="#264f43">経道値 <tspan font-size="16" letter-spacing="3">KEIDOCHI</tspan></text>
-      <text x="1136" y="74" text-anchor="end" font-size="19" fill="#637666">北海道179市町村の旅の記録</text>
+      <text x="64" y="79" font-size="40" font-weight="700" fill="#264f43">経道値 <tspan font-size="24" letter-spacing="3">KEIDOCHI</tspan></text>
+      <text x="1136" y="74" text-anchor="end" font-size="24" fill="#637666">北海道179市町村の旅の記録</text>
       <rect x="48" y="109" width="1104" height="112" rx="15" fill="#234c40"/>
-      <text x="74" y="145" font-size="19" fill="#d9e6cb">私の経道値</text>
+      <text x="74" y="145" font-size="24" fill="#d9e6cb">私の経道値</text>
       <text x="74" y="198" font-size="53" font-weight="700" fill="#ffffff">${score}<tspan dx="12" font-size="24" font-weight="400" fill="#d9e6cb">/ 895 pt</tspan></text>
-      <text x="465" y="153" font-size="18" fill="#d9e6cb">足あとを残したまち</text>
-      <text x="465" y="193" font-size="31" fill="#ffffff">${touched}<tspan font-size="19"> / 179</tspan></text>
-      <text x="742" y="153" font-size="18" fill="#d9e6cb">訪問以上</text>
-      <text x="742" y="193" font-size="31" fill="#ffffff">${visited}<tspan font-size="19"> 市町村</tspan></text>
-      <text x="951" y="153" font-size="18" fill="#d9e6cb">宿泊以上</text>
-      <text x="951" y="193" font-size="31" fill="#ffffff">${stayed}<tspan font-size="19"> 市町村</tspan></text>
+      <text x="465" y="153" font-size="24" fill="#d9e6cb">足あとを残したまち</text>
+      <text x="465" y="193" font-size="31" fill="#ffffff">${touched}<tspan font-size="24"> / 179</tspan></text>
+      <text x="742" y="153" font-size="24" fill="#d9e6cb">訪問以上</text>
+      <text x="742" y="193" font-size="31" fill="#ffffff">${visited}<tspan font-size="24"> 市町村</tspan></text>
+      <text x="951" y="153" font-size="24" fill="#d9e6cb">宿泊以上</text>
+      <text x="951" y="193" font-size="31" fill="#ffffff">${stayed}<tspan font-size="24"> 市町村</tspan></text>
       <rect x="48" y="240" width="1104" height="810" rx="15" fill="#edf5fa"/>
       ${mapMarkup}
       ${legend}
-      <text x="64" y="1160" font-size="16" fill="#6b8077">地図データ：北海道オープンデータ（CC BY）を加工</text>
-      <text x="1136" y="1160" text-anchor="end" font-size="22" font-weight="600" fill="#264f43">#経道値 #北海道</text>
+      <text x="64" y="1160" font-size="24" fill="#6b8077">地図データ：北海道オープンデータ（CC BY）を加工</text>
+      <text x="1136" y="1160" text-anchor="end" font-size="28" font-weight="600" fill="#264f43">#経道値 #北海道</text>
     </g>
   </svg>`;
 }

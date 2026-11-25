@@ -143,7 +143,8 @@ function createMap() {
       const tooltip = $('#map-tooltip');
       tooltip.textContent = `${city.name} · ${LEVELS[records[city.id]?.level ?? 0].label}`;
       tooltip.hidden = false;
-      tooltip.style.left = `${Math.max(65, Math.min(bounds.width - 65, event.clientX - bounds.left))}px`;
+      const tooltipMargin = tooltip.offsetWidth / 2 + 8;
+      tooltip.style.left = `${Math.max(tooltipMargin, Math.min(bounds.width - tooltipMargin, event.clientX - bounds.left))}px`;
       tooltip.style.top = `${Math.max(48, event.clientY - bounds.top)}px`;
     });
     path.addEventListener('pointerleave', () => { $('#map-tooltip').hidden = true; });
@@ -160,9 +161,9 @@ function createMap() {
   const labelPositions = {
     '小樽市': { dx: -8, dy: -7, anchor: 'end' },
     '札幌市': { dx: -8, dy: 17, anchor: 'end' },
-    '北見市': { dx: -8, dy: 17, anchor: 'end' },
+    '北見市': { dx: 8, dy: 17, anchor: 'start' },
     '留萌市': { dx: -8, dy: 4, anchor: 'end' },
-    '紋別市': { dx: 7, dy: -7, anchor: 'start' },
+    '紋別市': { dx: 7, dy: -20, anchor: 'start' },
     '網走市': { dx: -8, dy: -15, anchor: 'end' },
     '室蘭市': { dx: -8, dy: 4, anchor: 'end' },
   };
