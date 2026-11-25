@@ -100,7 +100,7 @@ test('X share contains aggregate results, excludes notes and omits local preview
   assert.equal(url.pathname, '/intent/tweet');
   assert.match(url.searchParams.get('text'), /4 \/ 895/);
   assert.match(url.searchParams.get('text'), /1 \/ 179/);
-  assert.equal(url.searchParams.get('hashtags'), '経道値,北海道');
+  assert.equal(url.searchParams.get('hashtags'), '経道値');
   assert.equal(url.searchParams.get('url'), 'https://example.com/keidochi/');
   assert.ok(!url.href.includes('private'));
   assert.ok(!new URL(shareUrl(records, 'http://localhost:4173/')).searchParams.has('url'));

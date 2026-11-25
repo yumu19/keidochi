@@ -41,7 +41,8 @@ test('native file sharing is only offered when the exact file type is supported'
   const data = imageShareData(file, shareUrl({ '01100': { level: 4, note: 'PRIVATE' } }, 'https://example.com/keidochi/?private=1'));
   assert.equal(data.files[0], file);
   assert.match(data.text, /4 \/ 895/);
-  assert.match(data.text, /#経道値 #北海道/);
+  assert.match(data.text, /#経道値/);
+  assert.doesNotMatch(data.text, /#北海道/);
   assert.ok(data.text.includes('https://example.com/keidochi/'));
   assert.ok(!data.text.includes('PRIVATE') && !data.text.includes('private=1'));
 });

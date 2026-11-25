@@ -66,7 +66,7 @@ export function createShareSvg(map, records, viewBox) {
       ${mapMarkup}
       ${legend}
       <text x="64" y="1160" font-size="24" fill="#6b8077">地図データ：北海道オープンデータ（CC BY）を加工</text>
-      <text x="1136" y="1160" text-anchor="end" font-size="28" font-weight="600" fill="#264f43">#経道値 #北海道</text>
+      <text x="1136" y="1160" text-anchor="end" font-size="28" font-weight="600" fill="#264f43">#経道値</text>
     </g>
   </svg>`;
 }

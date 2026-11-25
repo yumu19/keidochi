@@ -143,7 +143,8 @@ test('application interactions and persistent records', async t => {
     assert.equal(shared.files.length, 1);
     assert.equal(shared.files[0].type, 'image/png');
     assert.match(shared.text, /7 \/ 895/);
-    assert.match(shared.text, /#経道値 #北海道/);
+    assert.match(shared.text, /#経道値/);
+    assert.doesNotMatch(shared.text, /#北海道/);
     assert.ok(!shared.text.includes('スープカレー'));
     await waitForImage();
     assert.equal($('#share-dialog').open, false);
