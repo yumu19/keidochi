@@ -57,6 +57,21 @@ npm run preview
 
 設定の詳細は [GitHub公式ドキュメント](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) を参照してください。
 
+### OGP・Twitterカード
+
+`index.html` にOGPとTwitterカード（`summary_large_image`）を設定しています。正規URLは `https://yumu19.github.io/keidochi/`、共通画像は `https://yumu19.github.io/keidochi/assets/og-image.png` です。タイトル・説明・画像・画像の代替テキストを静的HTMLに含め、JavaScriptを実行しないクローラーにも渡せる構成です。
+
+共通画像は1200×630pxのPNGで、アプリを紹介する固定のイラストです。利用者のローカルストレージの記録・メモは含みません。利用者自身の記録入り画像は、アプリの「結果をシェア」で別に生成します。
+
+画像とそのSVGソースは `assets/` に収録し、通常のビルドで `dist/assets/` にコピーします。再生成する場合：
+
+```sh
+npm ci
+npm run og:image
+```
+
+画像の再生成時には日本語フォントを使用できる環境が必要です。必要に応じて `OG_FONT_FILE` 環境変数で日本語フォントファイルのパスを指定してください。画像生成ツールは開発用依存で、ブラウザーでは使いません。公開先を変更した場合は、`index.html` のcanonical・OGP・Twitterカードの絶対URLと、画像生成スクリプト内のURL表記も変更してください。
+
 ## 保存とバックアップ
 
 画面上部の **「JSONデータ」**、または「まちから探す」の **「データ管理」** から操作します。

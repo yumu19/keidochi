@@ -8,12 +8,14 @@
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "preview": "node scripts/serve.mjs dist",
+    "og:image": "node scripts/create-og-image.mjs",
     "test": "node --test"
   },
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "jsdom": "^29.1.1"
   }
 }
