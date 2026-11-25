@@ -1,7 +1,7 @@
 import { municipalities } from './municipalities.js';
 import { populations } from './population.js';
 import { createShareSvg, createShareImage, canShareImage, imageShareData } from './share-image.js';
-import { LEVELS, STORAGE_KEY, loadRecords, saveRecords, summarize, filterMunicipalities, shareUrl, validatePayload } from './model.js';
+import { LEVELS, STORAGE_KEY, loadRecords, saveRecords, summarize, filterMunicipalities, shareUrl, validatePayload, progressMessage } from './model.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -115,7 +115,7 @@ function renderStats() {
   $('#coverage').replaceChildren(document.createTextNode(summary.percent), Object.assign(document.createElement('small'), { textContent: '%' }));
   $('#score-progress').style.width = `${summary.score / 895 * 100}%`;
   $('#coverage-progress').style.width = `${summary.touched / 179 * 100}%`;
-  $('#score-message').textContent = summary.touched === 179 ? '179のまちに、あなたの足あと。' : `あと${179 - summary.touched}のまちが、あなたを待っています。`;
+  $('#score-message').textContent = progressMessage(summary.touched);
   for (const item of $$('.legend-item')) {
     const level = Number(item.dataset.level);
     item.querySelector('small').textContent = summary.counts[level];

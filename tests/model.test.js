@@ -105,4 +105,8 @@ test('X share contains aggregate results, excludes notes and omits local preview
   assert.equal(url.searchParams.get('url'), 'https://example.com/keidochi/');
   assert.ok(!url.href.includes('private'));
   assert.ok(!new URL(shareUrl(records, 'http://localhost:4173/')).searchParams.has('url'));
+  const completedRecords = Object.fromEntries([...validIds].map(id => [id, record(1)]));
+  const completedText = new URL(shareUrl(completedRecords, 'https://example.com/keidochi/')).searchParams.get('text');
+  assert.match(completedText, /北海道を踏破しました！$/);
+  assert.doesNotMatch(completedText, /あと0のまち/);
 });
