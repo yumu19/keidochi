@@ -82,6 +82,9 @@ Node.js標準のテストランナーと、開発時だけ使用するjsdomで�
 
 - [北海道の地図GISデータ【北海道】](https://www.harp.lg.jp/opendata/dataset/1379.html) — 市町村ポリゴン、地名表示用座標
 - [道内179市町村／50音別](https://www.pref.hokkaido.lg.jp/link/shichoson/aiueo.html) — 名称・読み・振興局
+- [住民基本台帳人口・世帯数](https://www.pref.hokkaido.lg.jp/ss/tuk/900brr/index2.html) — 地図の都市名表示の判定に使用（[2026年1月1日現在の原表](https://www.pref.hokkaido.lg.jp/fs/1/3/1/8/6/7/9/7/_/901brr2601n.xlsx)、外国人を含む総人口）
+
+人口は `src/population.js` に収録し、10万人以上の札幌市・旭川市・函館市・苫小牧市・帯広市・釧路市・江別市・北見市・小樽市の9市を地図上に常時表示します。位置の目安となる稚内市・網走市・根室市のラベルも表示します。人口は上記基準日時点の値で、自動更新はしません。
 
 原データは `data/`、生成済みのSVGパス・市町村情報は `src/municipalities.js` に収録しています。地図の対象は公式一覧の179市町村です。北方領土の図形は集計対象に含めていません。札幌市のコードは市全体の `01100` に揃えています。
 

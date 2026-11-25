@@ -1,4 +1,5 @@
 import { municipalities } from './municipalities.js';
+import { populations } from './population.js';
 import { LEVELS, STORAGE_KEY, loadRecords, saveRecords, summarize, filterMunicipalities, shareUrl, validatePayload } from './model.js';
 
 const $ = selector => document.querySelector(selector);
@@ -148,13 +149,24 @@ function createMap() {
     fragment.append(path);
   }
   $('#map-shapes').append(fragment);
-  const labels = ['稚内市', '旭川市', '札幌市', '函館市', '帯広市', '釧路市', '根室市', '網走市'];
-  for (const name of labels) {
-    const city = municipalities.find(c => c.name === name);
+  const landmarks = new Set(['稚内市', '根室市', '網走市']);
+  const labels = municipalities.filter(city => populations[city.name] >= 100000 || landmarks.has(city.name));
+  const labelPositions = {
+    '小樽市': { dx: -8, dy: -7, anchor: 'end' },
+    '札幌市': { dx: -8, dy: 17, anchor: 'end' },
+    '江別市': { dx: 8, dy: -6, anchor: 'start' },
+    '北見市': { dx: -8, dy: 17, anchor: 'end' },
+  };
+  for (const city of labels) {
+    const major = populations[city.name] >= 100000;
     const [x, y] = city.point;
-    $('#map-labels').append(svgElement('circle', { cx: x, cy: y, r: 2.5, class: 'map-label-dot' }));
-    const label = svgElement('text', { x: x + 7, y: y + 4, class: 'map-city-label' });
-    label.textContent = name.replace('市', '');
+    const { dx, dy, anchor } = labelPositions[city.name] ?? { dx: 7, dy: 4, anchor: 'start' };
+    $('#map-labels').append(svgElement('circle', { cx: x, cy: y, r: major ? 3 : 2.5, class: 'map-label-dot' }));
+    const label = svgElement('text', {
+      x: x + dx, y: y + dy, 'text-anchor': anchor,
+      class: `map-city-label${major ? ' major-city-label' : ''}`, 'data-city-id': city.id,
+    });
+    label.textContent = city.name.replace('市', '');
     $('#map-labels').append(label);
   }
   renderMapState();
