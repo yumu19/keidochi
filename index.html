@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#264f43">
+  <meta name="description" content="北海道179市町村の旅行経験を、あなたの色で記録。通過から居住まで、旅の足あとを地図に残す「経道値」。登録不要で使えます。">
+  <meta property="og:title" content="経道値 — 北海道を、あなたの色に。">
+  <meta property="og:description" content="179のまち、あなただけの旅の記録。北海道の旅行経験を地図に残そう。">
+  <meta property="og:type" content="website">
+  <title>経道値 — 北海道を、あなたの色に。</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="stylesheet" href="./src/style.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へスキップ</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="./" aria-label="経道値 ホーム"><img src="./favicon.svg" alt="" width="39" height="39"><span>経道値<small>KEIDOCHI</small></span></a>
+      <nav aria-label="メインナビゲーション"><a class="nav-current" href="#workspace">旅を記録する</a><button class="text-button" id="help-open">使い方 <span aria-hidden="true">↗</span></button></nav>
+      <div class="header-actions"><span class="local-badge" id="local-status"><span></span>この端末に保存</span><button class="button share-button" id="share-top"><span class="x-icon" aria-hidden="true">𝕏</span><span>結果をシェア</span></button></div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero-copy"><div class="eyebrow"><span class="tiny-line"></span> YOUR HOKKAIDO, ONE TOWN AT A TIME.</div><h1 id="hero-heading">北海道を、<span>あなたの色に。</span></h1><p>訪れたまちも、暮らしたまちも。<br>179の市町村に、あなただけの旅の足あとを。</p><div class="hero-note"><span aria-hidden="true">✳</span> その経験が、あなたの「経道値」になる。</div></div>
+      <div class="score-card"><div class="score-card-top"><span>あなたの経道値</span><span class="score-spark" aria-hidden="true">✧</span></div><div class="score-value"><strong id="total-score">0</strong><span>/ 895 <small>pt</small></span></div><div class="score-track"><span id="score-progress"></span></div><div class="score-card-bottom"><span id="score-message">まだ見ぬ北海道へ、最初の一歩。</span><span>HOKKAIDO 179</span></div><svg class="score-art" viewBox="0 0 210 160" aria-hidden="true"><circle cx="151" cy="38" r="24"/><path d="m5 160 65-99 48 68 25-36 66 67M35 116l35-55 24 34M110 140l33-47 28 30"/></svg></div>
+    </section>
+
+    <section class="overview" aria-label="旅の集計">
+      <div class="overview-item"><span class="overview-icon" data-icon="pin"></span><div><span class="stat-label">足あとを残したまち <small>通過以上</small></span><div class="stat-value"><strong id="touched-count">0</strong><span>/ 179 市町村</span></div></div></div>
+      <div class="overview-item"><span class="overview-icon" data-icon="flag"></span><div><span class="stat-label">訪れたまち <small>訪問以上</small></span><div class="stat-value"><strong id="visited-count">0</strong><span>市町村</span></div></div></div>
+      <div class="overview-item"><span class="overview-icon" data-icon="moon"></span><div><span class="stat-label">泊まったまち <small>宿泊以上</small></span><div class="stat-value"><strong id="stayed-count">0</strong><span>市町村</span></div></div></div>
+      <div class="achievement"><div><span>北海道の足あと率</span><strong id="coverage">0<small>%</small></strong></div><div class="coverage-track"><span id="coverage-progress"></span></div><p>ひとつずつ、思い出を増やそう。</p></div>
+    </section>
+
+    <div id="storage-warning" class="warning" role="alert" hidden></div>
+    <section class="workspace" id="workspace" aria-label="地図から旅を記録">
+      <div class="map-card panel">
+        <div class="panel-heading"><div><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p>市町村を選んで、経験を記録しましょう。</p></div><span class="small-tag">全179市町村</span></div>
+        <div class="map-canvas" id="map-canvas">
+          <span class="map-coordinate top-left">45° N / 139° E</span><span class="map-coordinate bottom-right">HOKKAIDO, JAPAN</span>
+          <svg class="hokkaido-map" id="hokkaido-map" viewBox="0 0 860 560" aria-labelledby="map-title map-description"><title id="map-title">北海道179市町村の経験マップ</title><desc id="map-description">市町村をクリック、またはTabキーとEnterキーで選択できます。下の一覧からも検索できます。</desc><g id="map-shapes"></g><g id="map-labels" aria-hidden="true"></g></svg>
+          <div class="compass" aria-hidden="true"><span>N</span><svg viewBox="0 0 24 40"><path d="M12 1 21 30 12 24 3 30Z"/><path d="M12 1v23"/></svg></div>
+          <span class="sea sea-japan" aria-hidden="true">Sea of Japan</span><span class="sea sea-okhotsk" aria-hidden="true">Sea of Okhotsk</span><span class="sea sea-pacific" aria-hidden="true">Pacific Ocean</span>
+          <div class="map-controls"><button id="zoom-in" aria-label="地図を拡大">+</button><button id="zoom-out" aria-label="地図を縮小">−</button><button id="zoom-reset" aria-label="地図全体を表示"><span data-icon="expand"></span></button></div>
+          <div id="map-tooltip" class="map-tooltip" hidden></div>
+          <div class="map-hint"><span data-icon="cursor"></span><span>まちを選んで記録</span></div>
+        </div>
+        <div class="map-legend" id="map-legend" aria-label="経験レベルの凡例"></div>
+        <div class="map-source">地図データ：<a href="https://www.harp.lg.jp/opendata/dataset/1379.html" target="_blank" rel="noopener noreferrer">北海道オープンデータ</a>（CC BY）を加工</div>
+      </div>
+
+      <aside class="record-card panel" id="record-card" aria-labelledby="record-title">
+        <div class="record-eyebrow"><span class="live-dot"></span> YOUR TRAVEL RECORD</div>
+        <div class="city-title"><div><p id="city-region">石狩振興局</p><h2 id="record-title">札幌市</h2><span id="city-reading">さっぽろし</span></div><span class="city-badge" id="city-badge">未踏</span></div>
+        <fieldset class="experience-fieldset"><legend>このまちでの経験は？</legend><div id="experience-options"></div></fieldset>
+        <div class="note-heading"><label for="travel-note">旅のひとこと</label><span>任意 · <span id="note-count">0</span>/200</span></div><textarea id="travel-note" maxlength="200" rows="2" placeholder="お気に入りの景色、おいしかったもの…"></textarea>
+        <div class="save-note" id="save-status" aria-live="polite"><span data-icon="check"></span><span>選んだ経験を自動で保存します</span></div>
+      </aside>
+    </section>
+
+    <section class="municipality-section panel" id="municipalities" aria-labelledby="municipality-title">
+      <div class="list-heading"><div><div class="eyebrow">FIND YOUR NEXT MEMORY</div><h2 id="municipality-title">まちから探す<span id="result-count">179</span></h2></div><button class="text-button data-open"><span data-icon="download"></span>データ管理</button></div>
+      <div class="filters"><label class="search-field"><span data-icon="search"></span><span class="sr-only">市町村名・ふりがな・振興局で検索</span><input id="city-search" type="search" placeholder="市町村名・ふりがなで検索" autocomplete="off"></label><label class="select-field"><span class="sr-only">振興局で絞り込む</span><select id="region-filter"><option value="">すべての振興局</option></select></label><label class="select-field"><span class="sr-only">経験レベルで絞り込む</span><select id="level-filter"><option value="">すべての経験</option></select></label></div>
+      <div class="city-grid" id="city-grid"></div><div class="empty-state" id="empty-state" hidden><span data-icon="search"></span><h3>該当するまちが見つかりません</h3><p>検索する言葉や絞り込みを変えてみてください。</p><button class="button secondary" id="clear-filters">絞り込みをリセット</button></div><button id="show-all" class="show-all">すべての市町村を表示 <span aria-hidden="true">↓</span></button>
+    </section>
+
+    <section class="journey-banner"><div class="journey-mark" aria-hidden="true">✳</div><div><h2>次の旅が、少し楽しみになる。</h2><p>あなたの北海道、今どのくらい？ 旅の足あとをシェアしよう。</p></div><button class="button share-button" id="share-bottom"><span class="x-icon" aria-hidden="true">𝕏</span>経道値をシェア <span aria-hidden="true">↗</span></button></section>
+    <footer><a class="footer-brand" href="./">経道値<span>KEIDOCHI</span></a><p>179のまち。179通りの出会い。</p><div><button class="text-button" id="about-open">このアプリについて</button><span>© 2026 経道値</span></div></footer>
+  </main>
+
+  <dialog id="help-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">HOW TO KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>旅の思い出を、経道値に。</h2><p>地図または一覧から市町村を選び、これまでの経験にいちばん近いレベルを選んでください。</p><div id="help-levels"></div><div class="help-note"><strong>経験は、いちばん高いレベルを記録。</strong><p>「訪問」と「宿泊」の両方があれば「宿泊」を選びます。各市町村のポイントを合計したものが経道値です。全179市町村で、最大895ポイント。</p></div><p class="dialog-caption">本アプリ独自の基準です。接地は乗り換え・休憩等で降りた場合、訪問は観光や用事でまちを訪れた場合を目安にしてください。</p><button class="button primary close-dialog full-width">記録をはじめる</button></dialog>
+
+  <dialog id="data-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">YOUR DATA</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>旅の記録を管理</h2><p>記録はこのブラウザーのローカルストレージに保存されます。端末の変更やブラウザーのデータ削除に備えて、バックアップを残せます。</p><div class="data-action"><div><h3>バックアップを書き出す</h3><p>経験とメモをJSONファイルで保存します。</p></div><button class="button secondary" id="export-data">書き出す <span data-icon="download"></span></button></div><div class="data-action"><div><h3>バックアップを読み込む</h3><p>現在の記録をファイルの内容に置き換えます。</p></div><button class="button secondary" id="import-open">ファイルを選択 <span data-icon="upload"></span></button><input id="import-data" type="file" accept=".json,application/json" hidden></div><div id="import-preview" class="confirm-box" hidden><p id="import-summary"></p><div><button class="button primary" id="confirm-import">この内容で置き換える</button><button class="button secondary" id="cancel-import">キャンセル</button></div></div><p class="form-error" id="import-error" role="alert" hidden></p><div class="data-action danger-action"><div><h3>すべての記録をリセット</h3><p>経験とメモをすべて削除します。</p></div><button class="text-button danger" id="reset-open">リセット</button></div><div id="reset-confirm" class="confirm-box" hidden><p>すべての記録を削除します。元に戻せません。必要なら先にバックアップを書き出してください。</p><div><button class="button danger-button" id="reset-confirm-button">すべて削除する</button><button class="button secondary" id="reset-cancel">キャンセル</button></div></div></dialog>
+
+  <dialog id="about-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">ABOUT KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>北海道との、距離を縮める。</h2><p>経道値（けいどうち）は、北海道179市町村の旅行経験を記録するアプリです。旅先との関わりの深さを色とポイントで残せます。</p><div class="help-note"><h3>登録不要。このブラウザーに保存。</h3><p>旅行の記録やメモをサーバーへ送信する機能はありません。Xへのシェアでは、経道値と足あとを残した市町村数を共有します。メモは共有されません。</p></div><p>ブラウザーや端末を変えると記録は引き継がれません。データ管理からバックアップを保存・読み込みしてください。プライベートブラウズでは終了時に消える場合があります。</p><p class="dialog-caption">対象の市町村は<a href="https://www.pref.hokkaido.lg.jp/link/shichoson/" target="_blank" rel="noopener noreferrer">北海道公式の179市町村一覧</a>に準拠。札幌市は区を分けず1市として記録します。地図は北海道公開の行政界データを簡略化したもので、境界の厳密な表示を目的としません。</p><button class="button primary close-dialog full-width">閉じる</button></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <noscript><div class="warning">経道値を使うには、ブラウザーのJavaScriptを有効にしてください。</div></noscript>
+</body>
+</html>

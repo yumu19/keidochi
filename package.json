@@ -1,0 +1,19 @@
+{
+  "name": "keidochi",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "北海道179市町村の旅行経験を記録する静的Webアプリ",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs dist",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
