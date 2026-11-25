@@ -54,7 +54,7 @@ function updateStorageWarning() {
   const warning = $('#storage-warning');
   warning.hidden = !storageError;
   $('#local-status').classList.toggle('failed', !!storageError);
-  $('#local-status').lastChild.textContent = storageError ? '保存を確認してください' : 'この端末に保存';
+  $('#local-status').title = storageError ? '保存データを確認してください。クリックしてバックアップ・復元を開きます。' : '記録のバックアップ・復元を開く';
   if (storageError) {
     warning.replaceChildren(document.createTextNode('保存した記録を読み込めませんでした。既存データを保護するため記録を停止しています。保存機能が有効か確認し、バックアップを読み込むか、データ管理からリセットしてください。'));
     const button = document.createElement('button');
@@ -82,7 +82,7 @@ function commit(nextRecords, { recover = false } = {}) {
     return true;
   } catch {
     $('#local-status').classList.add('failed');
-    $('#local-status').lastChild.textContent = '保存に失敗しました';
+    $('#local-status').title = '保存に失敗しました。クリックしてバックアップ・復元を開きます。';
     toast('保存できませんでした。空き容量やブラウザーの保存設定を確認してください。', true);
     return false;
   }
