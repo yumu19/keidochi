@@ -113,7 +113,7 @@ function renderStats() {
   $('#coverage').replaceChildren(document.createTextNode(summary.percent), Object.assign(document.createElement('small'), { textContent: '%' }));
   $('#score-progress').style.width = `${summary.score / 895 * 100}%`;
   $('#coverage-progress').style.width = `${summary.touched / 179 * 100}%`;
-  $('#score-message').textContent = `足あと ${summary.touched} / 179 市町村`;
+  $('#score-message').textContent = summary.touched === 179 ? '179のまちに、あなたの足あと。' : `あと${179 - summary.touched}のまちが、あなたを待っています。`;
   for (const item of $$('.legend-item')) {
     const level = Number(item.dataset.level);
     item.querySelector('small').textContent = summary.counts[level];
