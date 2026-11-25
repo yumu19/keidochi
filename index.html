@@ -24,12 +24,9 @@
   </header>
 
   <main id="main">
-    <section class="hero" aria-labelledby="hero-heading">
-      <div class="hero-copy"><div class="eyebrow"><span class="tiny-line"></span> YOUR HOKKAIDO, ONE TOWN AT A TIME.</div><h1 id="hero-heading">北海道を、<span>あなたの色に。</span></h1><p>訪れたまちも、暮らしたまちも。<br>179の市町村に、あなただけの旅の足あとを。</p><div class="hero-note"><span aria-hidden="true">✳</span> その経験が、あなたの「経道値」になる。</div></div>
-      <div class="score-card"><div class="score-card-top"><span>あなたの経道値</span><span class="score-spark" aria-hidden="true">✧</span></div><div class="score-value"><strong id="total-score">0</strong><span>/ 895 <small>pt</small></span></div><div class="score-track"><span id="score-progress"></span></div><div class="score-card-bottom"><span id="score-message">まだ見ぬ北海道へ、最初の一歩。</span><span>HOKKAIDO 179</span></div><svg class="score-art" viewBox="0 0 210 160" aria-hidden="true"><circle cx="151" cy="38" r="24"/><path d="m5 160 65-99 48 68 25-36 66 67M35 116l35-55 24 34M110 140l33-47 28 30"/></svg></div>
-    </section>
-
+    <h1 class="sr-only">経道値 — 北海道の旅行記録</h1>
     <section class="overview" aria-label="旅の集計">
+      <div class="score-card"><div class="score-card-top">あなたの経道値</div><div class="score-value"><strong id="total-score">0</strong><span>/ 895 <small>pt</small></span></div><div class="score-track"><span id="score-progress"></span></div><div class="score-card-bottom"><span id="score-message">足あと 0 / 179 市町村</span></div></div>
       <div class="overview-item"><span class="overview-icon" data-icon="pin"></span><div><span class="stat-label">足あとを残したまち <small>通過以上</small></span><div class="stat-value"><strong id="touched-count">0</strong><span>/ 179 市町村</span></div></div></div>
       <div class="overview-item"><span class="overview-icon" data-icon="flag"></span><div><span class="stat-label">訪れたまち <small>訪問以上</small></span><div class="stat-value"><strong id="visited-count">0</strong><span>市町村</span></div></div></div>
       <div class="overview-item"><span class="overview-icon" data-icon="moon"></span><div><span class="stat-label">泊まったまち <small>宿泊以上</small></span><div class="stat-value"><strong id="stayed-count">0</strong><span>市町村</span></div></div></div>
@@ -42,7 +39,7 @@
         <div class="panel-heading"><div><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p>市町村を選んで、経験を記録しましょう。</p></div><span class="small-tag">全179市町村</span></div>
         <div class="map-canvas" id="map-canvas">
           <span class="map-coordinate top-left">45° N / 139° E</span><span class="map-coordinate bottom-right">HOKKAIDO, JAPAN</span>
-          <svg class="hokkaido-map" id="hokkaido-map" viewBox="0 0 860 560" aria-labelledby="map-title map-description"><title id="map-title">北海道179市町村の経験マップ</title><desc id="map-description">市町村をクリック、またはTabキーとEnterキーで選択できます。下の一覧からも検索できます。</desc><g id="map-shapes"></g><g id="map-labels" aria-hidden="true"></g></svg>
+          <svg class="hokkaido-map" id="hokkaido-map" viewBox="105 5 650 570" aria-labelledby="map-title map-description"><title id="map-title">北海道179市町村の経験マップ</title><desc id="map-description">市町村をクリック、またはTabキーとEnterキーで選択できます。下の一覧からも検索できます。</desc><g id="map-shapes"></g><g id="map-labels" aria-hidden="true"></g></svg>
           <div class="compass" aria-hidden="true"><span>N</span><svg viewBox="0 0 24 40"><path d="M12 1 21 30 12 24 3 30Z"/><path d="M12 1v23"/></svg></div>
           <span class="sea sea-japan" aria-hidden="true">Sea of Japan</span><span class="sea sea-okhotsk" aria-hidden="true">Sea of Okhotsk</span><span class="sea sea-pacific" aria-hidden="true">Pacific Ocean</span>
           <div class="map-controls"><button id="zoom-in" aria-label="地図を拡大">+</button><button id="zoom-out" aria-label="地図を縮小">−</button><button id="zoom-reset" aria-label="地図全体を表示"><span data-icon="expand"></span></button></div>

@@ -18,7 +18,9 @@ let pendingImport = null;
 let dragging = false;
 let ignoreMapClick = false;
 let zoom = 1;
-let center = { x: 430, y: 280 };
+const [mapLeft, mapTop, mapWidth, mapHeight] = $('#hokkaido-map').getAttribute('viewBox').split(/\s+/).map(Number);
+const mapCenter = { x: mapLeft + mapWidth / 2, y: mapTop + mapHeight / 2 };
+let center = { ...mapCenter };
 const svgNS = 'http://www.w3.org/2000/svg';
 
 const icons = {
@@ -111,7 +113,7 @@ function renderStats() {
   $('#coverage').replaceChildren(document.createTextNode(summary.percent), Object.assign(document.createElement('small'), { textContent: '%' }));
   $('#score-progress').style.width = `${summary.score / 895 * 100}%`;
   $('#coverage-progress').style.width = `${summary.touched / 179 * 100}%`;
-  $('#score-message').textContent = summary.touched === 0 ? 'まだ見ぬ北海道へ、最初の一歩。' : summary.touched === 179 ? '179のまちに、あなたの足あと。' : `あと${179 - summary.touched}のまちが、あなたを待っています。`;
+  $('#score-message').textContent = `足あと ${summary.touched} / 179 市町村`;
   for (const item of $$('.legend-item')) {
     const level = Number(item.dataset.level);
     item.querySelector('small').textContent = summary.counts[level];
@@ -298,9 +300,9 @@ window.addEventListener('pagehide', () => { flushNote(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNote(); });
 
 function renderViewbox() {
-  const width = 860 / zoom, height = 560 / zoom;
-  center.x = Math.max(width / 2, Math.min(860 - width / 2, center.x));
-  center.y = Math.max(height / 2, Math.min(560 - height / 2, center.y));
+  const width = mapWidth / zoom, height = mapHeight / zoom;
+  center.x = Math.max(mapLeft + width / 2, Math.min(mapLeft + mapWidth - width / 2, center.x));
+  center.y = Math.max(mapTop + height / 2, Math.min(mapTop + mapHeight - height / 2, center.y));
   $('#hokkaido-map').setAttribute('viewBox', `${center.x - width / 2} ${center.y - height / 2} ${width} ${height}`);
   $('#hokkaido-map').classList.toggle('zoomed', zoom > 1);
   $('#zoom-out').disabled = zoom <= 1;
@@ -313,7 +315,7 @@ $('#zoom-in').addEventListener('click', () => {
   zoom = Math.min(4, zoom * 1.4); renderViewbox();
 });
 $('#zoom-out').addEventListener('click', () => { zoom = Math.max(1, zoom / 1.4); renderViewbox(); });
-$('#zoom-reset').addEventListener('click', () => { zoom = 1; center = { x: 430, y: 280 }; renderViewbox(); });
+$('#zoom-reset').addEventListener('click', () => { zoom = 1; center = { ...mapCenter }; renderViewbox(); });
 let pointerStart = null;
 $('#hokkaido-map').addEventListener('pointerdown', event => {
   ignoreMapClick = false;
@@ -330,7 +332,7 @@ $('#hokkaido-map').addEventListener('pointermove', event => {
   $('#hokkaido-map').classList.add('dragging');
   if (!$('#hokkaido-map').hasPointerCapture(event.pointerId)) $('#hokkaido-map').setPointerCapture(event.pointerId);
   const bounds = $('#hokkaido-map').getBoundingClientRect();
-  const scale = Math.min(bounds.width / (860 / zoom), bounds.height / (560 / zoom));
+  const scale = Math.min(bounds.width / (mapWidth / zoom), bounds.height / (mapHeight / zoom));
   center.x = pointerStart.center.x - dx / scale;
   center.y = pointerStart.center.y - dy / scale;
   renderViewbox();

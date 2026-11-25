@@ -88,12 +88,13 @@ test('application interactions and persistent records', async t => {
   });
 
   await t.test('zoom controls change the map view and restore the original view', () => {
+    const originalViewBox = $('#hokkaido-map').getAttribute('viewBox');
     assert.equal($('#zoom-out').disabled, true);
     $('#zoom-in').click();
-    assert.notEqual($('#hokkaido-map').getAttribute('viewBox'), '0 0 860 560');
+    assert.notEqual($('#hokkaido-map').getAttribute('viewBox'), originalViewBox);
     assert.equal($('#zoom-out').disabled, false);
     $('#zoom-reset').click();
-    assert.equal($('#hokkaido-map').getAttribute('viewBox'), '0 0 860 560');
+    assert.equal($('#hokkaido-map').getAttribute('viewBox'), originalViewBox);
   });
 
   await t.test('X share encodes current aggregate results and excludes private notes', () => {

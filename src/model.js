@@ -1,11 +1,11 @@
 export const STORAGE_KEY = 'keidochi.records.v1';
 export const LEVELS = [
-  { label: '未踏', description: 'まだ行ったことがない', color: '#e5e9df' },
-  { label: '通過', description: '車や電車で通った', color: '#c7d8ad' },
-  { label: '接地', description: '乗り換え・休憩で降りた', color: '#91b491' },
-  { label: '訪問', description: 'まちを歩いた・観光した', color: '#568b79' },
-  { label: '宿泊', description: 'そのまちに泊まった', color: '#28594c' },
-  { label: '居住', description: '住んだことがある', color: '#c39a56' },
+  { label: '未踏', description: 'まだ行ったことがない', color: '#adc4d1' },
+  { label: '通過', description: '車や電車で通った', color: '#5da7e5' },
+  { label: '接地', description: '乗り換え・休憩で降りた', color: '#f2cf4a' },
+  { label: '訪問', description: 'まちを歩いた・観光した', color: '#40ae7b' },
+  { label: '宿泊', description: 'そのまちに泊まった', color: '#ed8843' },
+  { label: '居住', description: '住んだことがある', color: '#a875cf' },
 ];
 
 export function validatePayload(payload, validIds) {
