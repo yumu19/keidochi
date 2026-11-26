@@ -46,7 +46,8 @@ export function renderOverview(document, records) {
   $('#coverage').replaceChildren(document.createTextNode(summary.percent), Object.assign(document.createElement('small'), { textContent: '%' }));
   $('#score-progress').style.width = `${summary.score / 895 * 100}%`;
   $('#coverage-progress').style.width = `${summary.touched / 179 * 100}%`;
-  $('#score-message').textContent = progressMessage(summary.touched);
+  const scoreMessage = $('#score-message');
+  if (scoreMessage) scoreMessage.textContent = progressMessage(summary.touched);
   for (const item of $$('.legend-item')) {
     const level = Number(item.dataset.level);
     item.querySelector('small').textContent = summary.counts[level];
