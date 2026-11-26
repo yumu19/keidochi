@@ -51,8 +51,8 @@ function render() {
   $('#shared-view').classList.toggle('invalid', invalid);
   $('#shared-view-title').textContent = invalid ? '共有リンクのデータを読み込めませんでした' : '共有された記録を表示しています';
   $('#shared-view-description').textContent = invalid
-    ? '記録付きの共有リンクを確認してください。あなたが保存した記録は変更されません。'
-    : '閲覧専用です。あなたが保存した記録は変更されません。共有リンクにメモは含まれません。';
+    ? '記録付きの共有リンクを確認してください。右上の「自分の記録を入力」から、自分の記録を編集する画面に移動できます。'
+    : '閲覧専用です。右上の「自分の記録を入力」から、自分の記録を編集する画面に移動できます。';
   for (const section of $$('.overview, #workspace, #municipalities')) section.hidden = invalid;
   renderOverview(document, records);
   renderDetail();
