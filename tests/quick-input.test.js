@@ -154,7 +154,7 @@ test('failed quick writes or undo keep stored records, selection and retryable h
     f.fire('#travel-note', 'input');
     window.Storage.prototype.setItem = () => { throw new Error('quota'); };
     $('#quick-toggle').click();
-    assert.equal($('#quick-toggle').getAttribute('aria-pressed'), 'false');
+    assert.equal($('#quick-toggle').getAttribute('aria-checked'), 'false');
     assert.equal($('#travel-note').value, '失敗しても残る下書き');
     assert.deepEqual(stored(), own);
   } finally { f.dom.window.close(); }
@@ -189,7 +189,7 @@ test('corrupt storage disables quick input until explicit recovery', async () =>
     f.window.dispatchEvent(new f.window.StorageEvent('storage', { key: STORAGE_KEY }));
     assert.equal(f.$('#quick-toggle').disabled, true);
     f.$('#quick-toggle').click();
-    assert.equal(f.$('#quick-toggle').getAttribute('aria-pressed'), 'false');
+    assert.equal(f.$('#quick-toggle').getAttribute('aria-checked'), 'false');
     f.paint('01203');
     assert.equal(f.window.localStorage.getItem(STORAGE_KEY), '{broken');
     f.$('.data-open').click(); f.$('#reset-open').click(); f.$('#reset-confirm-button').click();

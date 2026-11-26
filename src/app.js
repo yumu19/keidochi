@@ -121,7 +121,7 @@ function selectCity(id, scroll = false) {
 }
 
 function renderQuickMode() {
-  $('#quick-toggle').setAttribute('aria-pressed', String(quickEnabled));
+  $('#quick-toggle').setAttribute('aria-checked', String(quickEnabled));
   $('#quick-toggle').disabled = !!storageError;
   $('#quick-toggle-state').textContent = quickEnabled ? 'ON' : 'OFF';
   $('#quick-controls').hidden = !quickEnabled;

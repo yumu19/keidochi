@@ -53,7 +53,7 @@
       <div class="map-card panel">
         <div class="panel-heading"><div class="map-heading-copy"><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p id="map-guidance">市町村を選んで、経験を記録しましょう。</p></div><a class="button secondary" id="view-record" href="./view.html">記録を見る <span aria-hidden="true">↗</span></a></div>
         <div class="quick-input" id="quick-input">
-          <div class="quick-input-heading"><button class="button secondary" id="quick-toggle" aria-pressed="false" aria-controls="quick-controls">高速入力モード <span id="quick-toggle-state">OFF</span></button><p>同じ経験を、地図から続けて記録</p></div>
+          <div class="quick-input-heading"><button type="button" id="quick-toggle" role="switch" aria-checked="false" aria-labelledby="quick-toggle-label" aria-controls="quick-controls"><span class="quick-switch-track" aria-hidden="true"><span class="quick-switch-thumb"></span></span><span id="quick-toggle-label">高速入力モード</span><span id="quick-toggle-state" aria-hidden="true">OFF</span></button><p>同じ経験を、地図から続けて記録</p></div>
           <div id="quick-controls" hidden>
             <div class="quick-levels" id="quick-levels" role="radiogroup" aria-label="クリックした市町村に記録する経験"></div>
             <div class="quick-input-footer"><p id="quick-instructions">クリックしたまちを選んだ経験で上書きします。メモはそのまま残ります。</p><button class="button secondary" id="quick-undo" disabled>1つ戻す</button></div>
