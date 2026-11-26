@@ -213,8 +213,6 @@ textarea::placeholder,.search-field input::placeholder{color:#6f7e65}
 #view-record{flex:none;white-space:nowrap}
 .viewer-page .workspace{grid-template-columns:minmax(0,1fr) 280px}
 .viewer-page .header-inner{gap:28px}
-.viewer-brand{display:flex;align-items:center;gap:14px;flex:none}
-.viewer-mode{display:inline-flex;align-items:center;white-space:nowrap;border:1px solid var(--line);border-radius:20px;padding:3px 10px;background:var(--paper);color:var(--green);font-size:12px;font-weight:650;letter-spacing:.06em}
 .viewer-page .viewer-edit-link{min-height:48px;padding:12px 20px;font-size:16px;white-space:nowrap;box-shadow:0 3px 10px #28594c24}
 .viewer-edit-link svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .viewer-notice{justify-content:flex-start}
@@ -239,7 +237,6 @@ textarea::placeholder,.search-field input::placeholder{color:#6f7e65}
 @media(min-width:721px) and (max-width:1000px){.viewer-page .header-inner nav>a{display:none}.viewer-page .header-inner{gap:20px}}
 @media(max-width:720px){
  .viewer-page .header-inner{gap:12px}
- .viewer-brand{flex-direction:column;align-items:flex-start;gap:5px}
  .viewer-page .header-inner nav{grid-row:1;grid-column:2;align-self:center}
  .viewer-page .header-actions #edit-link{grid-column:1/-1;grid-row:2;justify-self:stretch;width:100%;min-height:50px}
  .viewer-page .header-inner nav .text-button{font-size:13px}

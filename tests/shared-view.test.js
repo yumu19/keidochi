@@ -57,7 +57,6 @@ test('viewer has only read-only details and never accesses storage through contr
     assert.ok(!document.body.textContent.includes('PRIVATE'));
     assert.equal($('#edit-link').href, base);
     assert.equal($('#edit-link').textContent.includes('自分の記録を入力'), true);
-    assert.equal($('.viewer-mode').textContent, '閲覧専用');
     event('.city-shape[data-city-id="01202"]', 'click');
     assert.equal($('#record-title').textContent, '函館市');
     assert.equal($('#viewer-experience').textContent, '宿泊');
