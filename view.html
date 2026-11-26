@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#264f43">
+  <meta name="theme-color" content="#294b64">
   <meta name="description" content="北海道179市町村の旅の足あとを閲覧。経験レベルや経道値を地図で確認できます。あなたが保存した記録は変更されません。">
   <link rel="canonical" href="https://yumu19.github.io/keidochi/view.html">
   <meta property="og:type" content="website">
@@ -32,15 +32,16 @@
   <a class="skip-link" href="#main">本文へスキップ</a>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="./" aria-label="経道値 ホーム"><img src="./favicon.svg" alt="" width="39" height="39"><span>経道値<small>KEIDOCHI</small></span></a>
+      <div class="viewer-brand"><a class="brand" href="./" aria-label="経道値 ホーム"><img src="./favicon.svg" alt="" width="39" height="39"><span>経道値<small>KEIDOCHI</small></span></a><span class="viewer-mode">閲覧専用</span></div>
       <nav aria-label="メインナビゲーション"><a class="nav-current" href="#workspace">共有された記録</a><button class="text-button" id="help-open">レベルの見方 <span aria-hidden="true">↗</span></button></nav>
-      <div class="header-actions"><a class="button secondary" id="edit-link" href="./">自分の記録を入力</a><button class="button share-button" id="share-top"><span class="x-icon" aria-hidden="true">𝕏</span><span>結果をシェア</span></button></div>
+      <div class="header-actions"><a class="button primary viewer-edit-link" id="edit-link" href="./"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1 12-12a2.8 2.8 0 0 0-4-4L4 15Zm0 0h16"/></svg>自分の記録を入力<span aria-hidden="true">→</span></a></div>
     </div>
   </header>
 
   <main id="main">
     <h1 class="sr-only">経道値 — 旅の足あとを見る</h1>
-    <section class="shared-notice" id="shared-view" role="status">
+    <section class="shared-notice viewer-notice" id="shared-view" role="status">
+      <span class="viewer-notice-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
       <div><strong id="shared-view-title">共有された記録を表示しています</strong><p id="shared-view-description">閲覧専用です。あなたが保存した記録は変更されません。共有リンクにメモは含まれません。</p></div>
     </section>
     <section class="overview" aria-label="旅の集計">
@@ -81,32 +82,13 @@
       <div class="city-grid" id="city-grid"></div><div class="empty-state" id="empty-state" hidden><span data-icon="search"></span><h3>該当するまちが見つかりません</h3><p>検索する言葉や絞り込みを変えてみてください。</p><button class="button secondary" id="clear-filters">絞り込みをリセット</button></div><button id="show-all" class="show-all">すべての市町村を表示 <span aria-hidden="true">↓</span></button>
     </section>
 
-    <section class="journey-banner"><div class="journey-mark" aria-hidden="true">✳</div><div><h2>次の旅が、少し楽しみになる。</h2><p>北海道の旅の足あとを、地図と一緒にシェアしよう。</p></div><button class="button share-button" id="share-bottom"><span class="x-icon" aria-hidden="true">𝕏</span>経道値をシェア <span aria-hidden="true">↗</span></button></section>
+    <section class="viewer-cta" aria-labelledby="viewer-cta-title"><div><h2 id="viewer-cta-title">あなたの旅も、地図に残そう。</h2><p>登録不要。保存済みの自分の記録も、そのまま使えます。</p></div><a class="button primary viewer-edit-link" href="./">自分の記録を入力 <span aria-hidden="true">→</span></a></section>
     <footer><a class="footer-brand" href="./">経道値<span>KEIDOCHI</span></a><p>179のまち。179通りの出会い。</p><div><a class="text-button" href="https://github.com/yumu19/keidochi" target="_blank" rel="noopener noreferrer" aria-label="経道値のGitHubリポジトリ（新しいタブで開きます）">GitHub <span aria-hidden="true">↗</span></a><button class="text-button" id="about-open">このアプリについて</button><span>© 2026 <a href="https://x.com/yumu19" target="_blank" rel="noopener noreferrer" aria-label="yumu19のXプロフィール（新しいタブで開きます）">yumu19</a></span></div></footer>
   </main>
 
   <dialog id="help-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">HOW TO KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>経験レベルの見方</h2><p>地図または一覧から市町村を選ぶと、共有された経験を確認できます。経験レベルごとの意味とポイントは次のとおりです。</p><div id="help-levels"></div><div class="help-note"><strong>経験は、いちばん高いレベルを記録。</strong><p>「訪問」と「宿泊」の両方があれば「宿泊」を選びます。各市町村のポイントを合計したものが経道値です。全179市町村で、最大895ポイント。</p></div><p class="dialog-caption">本アプリ独自の基準です。接地は乗り換え・休憩等で降りた場合、訪問は観光や用事でまちを訪れた場合を目安にしてください。</p><button class="button primary close-dialog full-width">閉じる</button></dialog>
 
-  <dialog id="share-dialog" class="dialog share-dialog" aria-labelledby="share-title">
-    <div class="dialog-top"><span class="eyebrow">SHARE YOUR HOKKAIDO</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div>
-    <h2 id="share-title">地図と一緒に、経道値をシェア</h2>
-    <p id="share-status" role="status">表示中の地図から画像を作成しています…</p>
-    <img id="share-preview" class="share-preview" width="1200" height="1200" alt="記録した経験の色分け・経道値・凡例を含む北海道の地図" hidden>
-    <p id="share-instructions" class="share-instructions" hidden></p>
-    <p id="share-error" class="form-error" role="alert" hidden></p>
-    <div class="share-actions">
-      <button class="button primary full-width" id="share-native" hidden>画像付きで共有</button>
-      <button class="button secondary" id="share-download" disabled>画像を保存（PNG）</button>
-      <button class="button share-button" id="share-x"><span class="x-icon" aria-hidden="true">𝕏</span>Xの投稿画面を開く</button>
-      <button class="button secondary" id="share-copy-link">記録付きリンクをコピー</button>
-      <button class="button secondary" id="share-retry" hidden>画像を作り直す</button>
-    </div>
-    <div id="share-link-field" class="share-link-field" hidden><label for="share-link-url">記録付き共有リンク</label><input id="share-link-url" type="url" readonly spellcheck="false"></div>
-    <p class="dialog-caption">共有リンクには各市町村の経験レベルを含めます。メモは含めません。リンクを開いても、相手の記録は変更されません。</p>
-  </dialog>
-
-  <dialog id="about-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">ABOUT KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>北海道との、距離を縮める。</h2><p>経道値（けいどうち）は、北海道179市町村の旅行経験を記録するアプリです。旅先との関わりの深さを色とポイントで残せます。</p><div class="help-note"><h3>共有された旅の足あとを見る。</h3><p>画像の作成と保存はこのブラウザー内で行います。シェアでは経道値・市町村数・経験を色分けした地図画像を共有できます。メモは共有されません。</p></div><p>この画面は閲覧専用です。自分の旅を記録するときは「自分の記録を入力」から入力画面を開いてください。保存済みの自分の記録を引き続き編集できます。</p><p class="dialog-caption">対象の市町村は<a href="https://www.pref.hokkaido.lg.jp/link/shichoson/" target="_blank" rel="noopener noreferrer">北海道公式の179市町村一覧</a>に準拠。札幌市は区を分けず1市として記録します。地図は北海道公開の行政界データを簡略化したもので、境界の厳密な表示を目的としません。</p><button class="button primary close-dialog full-width">閉じる</button></dialog>
-  <div class="toast" id="toast" role="status" hidden></div>
+  <dialog id="about-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">ABOUT KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>北海道との、距離を縮める。</h2><p>経道値（けいどうち）は、北海道179市町村の旅行経験を記録するアプリです。旅先との関わりの深さを色とポイントで残せます。</p><div class="help-note"><h3>共有された旅の足あとを見る。</h3><p>地図や市町村の一覧から、経験レベルと経道値を確認できます。共有リンクにメモは含まれません。</p></div><p>この画面は閲覧専用です。自分の旅を記録するときは「自分の記録を入力」から入力画面を開いてください。保存済みの自分の記録を引き続き編集できます。</p><p class="dialog-caption">対象の市町村は<a href="https://www.pref.hokkaido.lg.jp/link/shichoson/" target="_blank" rel="noopener noreferrer">北海道公式の179市町村一覧</a>に準拠。札幌市は区を分けず1市として記録します。地図は北海道公開の行政界データを簡略化したもので、境界の厳密な表示を目的としません。</p><button class="button primary close-dialog full-width">閉じる</button></dialog>
   <noscript><div class="warning">経道値を使うには、ブラウザーのJavaScriptを有効にしてください。</div></noscript>
 </body>
 </html>

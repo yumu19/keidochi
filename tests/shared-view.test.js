@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import { STORAGE_KEY } from '../src/model.js';
-import { createRecordLink, readSharedLink, encodeSharedRecords, viewPageUrl } from '../src/shared-records.js';
+import { createRecordLink, encodeSharedRecords, viewPageUrl } from '../src/shared-records.js';
 
 const base = 'https://example.com/keidochi/';
 const record = (level, note = '') => ({ level, note, updatedAt: '2026-11-26T01:00:00.000Z' });
@@ -51,10 +51,13 @@ test('viewer has only read-only details and never accesses storage through contr
     assert.equal($('#total-score').textContent, '7');
     assert.equal($('#viewer-experience').textContent, '訪問');
     assert.equal($('#viewer-points').textContent, '3');
-    for (const selector of ['input[name="experience"]', 'textarea', '#experience-options', '#data-dialog', '.data-open', '#local-status', '#save-status', '#import-data', '#reset-confirm-button']) {
+    for (const selector of ['input[name="experience"]', 'textarea', '#experience-options', '#data-dialog', '.data-open', '#local-status', '#save-status', '#import-data', '#reset-confirm-button', '#share-top', '#share-bottom', '#share-dialog', '.share-button']) {
       assert.equal($(selector), null, selector + ' must not exist in the viewer');
     }
     assert.ok(!document.body.textContent.includes('PRIVATE'));
+    assert.equal($('#edit-link').href, base);
+    assert.equal($('#edit-link').textContent.includes('自分の記録を入力'), true);
+    assert.equal($('.viewer-mode').textContent, '閲覧専用');
     event('.city-shape[data-city-id="01202"]', 'click');
     assert.equal($('#record-title').textContent, '函館市');
     assert.equal($('#viewer-experience').textContent, '宿泊');
@@ -113,7 +116,7 @@ test('viewer changes records with the URL and never falls back to personal recor
     navigate(new URL('view.html#share=invalid', base));
     assert.equal($('#workspace').hidden, true);
     assert.equal($('.overview').hidden, true);
-    assert.equal($('#share-top').disabled, true);
+    assert.equal($('#edit-link').href, base);
     assert.equal($('#shared-view').classList.contains('invalid'), true);
     navigate(new URL('view.html', base));
     assert.equal($('#workspace').hidden, true);
@@ -121,7 +124,6 @@ test('viewer changes records with the URL and never falls back to personal recor
     assert.equal($('#edit-link').href, base);
     navigate(link);
     assert.equal($('#workspace').hidden, false);
-    assert.equal($('#share-top').disabled, false);
     assert.equal($('#total-score').textContent, '7');
     f.unchanged();
   } finally { f.dom.window.close(); }
@@ -132,49 +134,6 @@ test('corrupt or unavailable personal storage cannot affect viewer results', asy
   try {
     assert.equal(f.$('#total-score').textContent, '7');
     assert.equal(f.$('#shared-view').classList.contains('invalid'), false);
-    f.unchanged();
-  } finally { f.dom.window.close(); }
-});
-
-test('sharing from viewer uses displayed records and returns a dedicated viewer link', async () => {
-  const f = await boot();
-  const { $, window } = f;
-  try {
-    let copied = '';
-    let clicked;
-    let imageSource;
-    window.navigator.clipboard = { writeText: async value => { copied = value; } };
-    window.HTMLAnchorElement.prototype.click = function () { clicked = this; };
-    window.URL.createObjectURL = blob => {
-      if (blob.type.startsWith('image/svg')) imageSource = blob;
-      return 'blob:test';
-    };
-    window.URL.revokeObjectURL = () => {};
-    window.Image = class { set src(value) { queueMicrotask(() => this.onload()); } };
-    window.HTMLCanvasElement.prototype.getContext = () => ({ drawImage() {} });
-    window.HTMLCanvasElement.prototype.toBlob = (callback, type) => callback(new window.Blob(['png'], { type }));
-    $('#share-top').click();
-    await new Promise(resolve => setImmediate(resolve));
-    assert.equal($('#share-preview').hidden, false);
-    const svg = await new Promise(resolve => {
-      const reader = new window.FileReader(); reader.onload = () => resolve(reader.result); reader.readAsText(imageSource);
-    });
-    assert.match(svg, /共有された経道値/);
-    assert.doesNotMatch(svg, /PRIVATE|共有しないメモ/);
-    $('#share-copy-link').click();
-    await new Promise(resolve => setImmediate(resolve));
-    assert.equal(copied, link);
-    assert.equal(readSharedLink(copied).records['01100'].level, 3);
-    $('#share-x').click();
-    const intent = new URL(clicked.href);
-    assert.match(intent.searchParams.get('text'), /共有された経道値は 7 \/ 895/);
-    assert.equal(intent.searchParams.get('url'), link);
-    assert.equal(intent.searchParams.get('hashtags'), '経道値');
-    delete window.navigator.clipboard;
-    $('#share-copy-link').click();
-    await new Promise(resolve => setImmediate(resolve));
-    assert.equal($('#share-link-field').hidden, false);
-    assert.equal($('#share-link-url').value, link);
     f.unchanged();
   } finally { f.dom.window.close(); }
 });

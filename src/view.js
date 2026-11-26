@@ -3,8 +3,7 @@ import { LEVELS } from './model.js';
 import { readSharedLink } from './shared-records.js';
 import { createMapController } from './map-controller.js';
 import { createCityList } from './city-list.js';
-import { createShareController } from './share-controller.js';
-import { renderIcons, createToast, renderOverview, createLevelPresentation, bindDialogs } from './record-display.js';
+import { renderIcons, renderOverview, createLevelPresentation, bindDialogs } from './record-display.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -54,9 +53,7 @@ function render() {
   $('#shared-view-description').textContent = invalid
     ? '記録付きの共有リンクを確認してください。あなたが保存した記録は変更されません。'
     : '閲覧専用です。あなたが保存した記録は変更されません。共有リンクにメモは含まれません。';
-  for (const section of $$('.overview, #workspace, #municipalities, .journey-banner')) section.hidden = invalid;
-  $('#share-top').disabled = invalid;
-  $('#share-bottom').disabled = invalid;
+  for (const section of $$('.overview, #workspace, #municipalities')) section.hidden = invalid;
   renderOverview(document, records);
   renderDetail();
   map.render();
@@ -69,7 +66,6 @@ createLevelPresentation(document);
 bindDialogs(document);
 const map = createMapController({ document, getRecords: () => records, getSelectedId: () => selectedId, onSelect: selectCity, readOnly: true });
 const list = createCityList({ document, getRecords: () => records, getSelectedId: () => selectedId, onSelect: selectCity, readOnly: true });
-createShareController({ document, getRecords: () => records, fullViewBox: map.fullViewBox, toast: createToast(document), isViewer: true, canShare: () => !sharedView.error });
 $('#help-open').addEventListener('click', () => $('#help-dialog').showModal());
 $('#about-open').addEventListener('click', () => $('#about-dialog').showModal());
 window.addEventListener('hashchange', () => {
