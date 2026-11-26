@@ -51,7 +51,7 @@ test('viewer has only read-only details and never accesses storage through contr
     assert.equal($('#total-score').textContent, '7');
     assert.equal($('#viewer-experience').textContent, '訪問');
     assert.equal($('#viewer-points').textContent, '3');
-    for (const selector of ['input[name="experience"]', 'textarea', '#experience-options', '#data-dialog', '.data-open', '#local-status', '#save-status', '#import-data', '#reset-confirm-button', '#share-top', '#share-bottom', '#share-dialog', '.share-button']) {
+    for (const selector of ['input[name="experience"]', 'textarea', '#experience-options', '#quick-input', '#data-dialog', '.data-open', '#local-status', '#save-status', '#import-data', '#reset-confirm-button', '#share-top', '#share-bottom', '#share-dialog', '.share-button']) {
       assert.equal($(selector), null, selector + ' must not exist in the viewer');
     }
     assert.ok(!document.body.textContent.includes('PRIVATE'));

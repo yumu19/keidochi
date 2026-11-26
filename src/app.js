@@ -18,6 +18,9 @@ let storageError = loaded.error;
 let selectedId = '01100';
 let noteTimer;
 let pendingImport = null;
+let quickEnabled = false;
+let quickLevel = 1;
+let quickHistory = [];
 const toast = createToast(document);
 const renderStats = () => {
   renderOverview(document, records);
@@ -40,9 +43,10 @@ function updateStorageWarning() {
   }
   for (const input of $$('input[name="experience"]')) input.disabled = !!storageError;
   $('#travel-note').disabled = !!storageError;
+  renderQuickMode();
 }
 
-function commit(nextRecords, { recover = false } = {}) {
+function commit(nextRecords, { recover = false, preserveQuickHistory = false } = {}) {
   if (storageError && !recover) {
     toast('保存できない状態です。データ管理を確認してください。', true);
     return false;
@@ -51,6 +55,7 @@ function commit(nextRecords, { recover = false } = {}) {
     saveRecords(storage, nextRecords);
     records = nextRecords;
     storageError = null;
+    if (!preserveQuickHistory) quickHistory = [];
     updateStorageWarning();
     renderStats();
     renderMapState();
@@ -115,8 +120,68 @@ function selectCity(id, scroll = false) {
   }
 }
 
+function renderQuickMode() {
+  $('#quick-toggle').setAttribute('aria-pressed', String(quickEnabled));
+  $('#quick-toggle').disabled = !!storageError;
+  $('#quick-toggle-state').textContent = quickEnabled ? 'ON' : 'OFF';
+  $('#quick-controls').hidden = !quickEnabled;
+  $('#quick-input').classList.toggle('active', quickEnabled);
+  $('#map-canvas').classList.toggle('quick-input-active', quickEnabled);
+  $('#quick-input').style.setProperty('--quick-color', LEVELS[quickLevel].color);
+  for (const input of $$('input[name="quick-experience"]')) input.disabled = !!storageError;
+  $('#quick-undo').disabled = !!storageError || quickHistory.length === 0;
+  $('#hokkaido-map').setAttribute('aria-describedby', quickEnabled ? 'quick-instructions' : 'map-guidance');
+  mapController.refreshHint();
+}
+
+function selectFromMap(id, scroll) {
+  if (!quickEnabled) { selectCity(id, scroll); return; }
+  if (storageError) { toast('保存できない状態です。データ管理を確認してください。', true); return; }
+  if (!flushNote()) return;
+  const before = records[id];
+  if ((before?.level ?? 0) !== quickLevel) {
+    const next = { ...records };
+    if (quickLevel === 0 && !before?.note) delete next[id];
+    else next[id] = { level: quickLevel, note: before?.note ?? '', updatedAt: new Date().toISOString() };
+    if (!commit(next, { preserveQuickHistory: true })) return;
+    quickHistory.push({ id, before });
+    renderQuickMode();
+  }
+  selectCity(id);
+  $('#quick-status').textContent = `${byId.get(id).name}を「${LEVELS[quickLevel].label}」で記録しました。`;
+}
+
+$('#quick-toggle').addEventListener('click', () => {
+  if (storageError || !flushNote()) return;
+  quickEnabled = !quickEnabled;
+  renderQuickMode();
+});
+$('#quick-undo').addEventListener('click', () => {
+  if (!flushNote()) return;
+  const last = quickHistory.at(-1);
+  if (!last) return;
+  const next = { ...records };
+  if (last.before) next[last.id] = last.before;
+  else delete next[last.id];
+  if (!commit(next, { preserveQuickHistory: true })) return;
+  quickHistory.pop();
+  selectCity(last.id);
+  renderQuickMode();
+  $('#quick-status').textContent = `${byId.get(last.id).name}の経験を元に戻しました。`;
+});
+
 function createLevelUI() {
   LEVELS.forEach((level, index) => {
+    const quickOption = document.createElement('label');
+    quickOption.className = 'quick-level-option';
+    quickOption.style.setProperty('--quick-color', level.color);
+    quickOption.innerHTML = `<input type="radio" name="quick-experience" value="quick-${index}"${index === quickLevel ? ' checked' : ''}><span><span class="color-dot" style="--dot-color:${level.color}"></span>${level.label}</span>`;
+    quickOption.querySelector('input').addEventListener('change', () => {
+      quickLevel = index;
+      renderQuickMode();
+      $('#quick-status').textContent = `「${level.label}」で連続入力します。市町村をクリックしてください。`;
+    });
+    $('#quick-levels').prepend(quickOption);
     const option = document.createElement('label');
     option.className = 'experience-option';
     option.innerHTML = `<input type="radio" name="experience" value="${index}" aria-label="${level.label} ${index}ポイント：${level.description}"><span class="option-dot" style="background:${level.color}"></span><span class="option-copy"><strong>${level.label}</strong><small>${level.description}</small></span><span class="option-points">${index}<small>pt</small></span><span class="option-check" aria-hidden="true"></span>`;
@@ -226,6 +291,7 @@ window.addEventListener('storage', event => {
   const result = loadRecords(storage, validIds);
   records = result.records;
   storageError = result.error;
+  quickHistory = [];
   renderStats(); renderMapState(); renderList(); updateStorageWarning();
   if (hasDraft) {
     for (const input of $$('input[name="experience"]')) input.checked = Number(input.value) === (records[selectedId]?.level ?? 0);
@@ -238,7 +304,7 @@ createLevelUI();
 createLevelPresentation(document);
 renderIcons(document);
 bindDialogs(document);
-const mapController = createMapController({ document, getRecords: () => records, getSelectedId: () => selectedId, onSelect: selectCity });
+const mapController = createMapController({ document, getRecords: () => records, getSelectedId: () => selectedId, onSelect: selectFromMap, getHint: () => quickEnabled ? `クリックで「${LEVELS[quickLevel].label}」を記録` : null });
 const cityList = createCityList({ document, getRecords: () => records, getSelectedId: () => selectedId, onSelect: selectCity });
 createShareController({ document, getRecords: () => records, fullViewBox: mapController.fullViewBox, toast, beforeShare: () => !!storageError || flushNote() });
 renderStats();

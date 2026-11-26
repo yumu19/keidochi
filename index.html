@@ -52,6 +52,14 @@
     <section class="workspace" id="workspace" aria-label="地図から旅を記録">
       <div class="map-card panel">
         <div class="panel-heading"><div class="map-heading-copy"><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p id="map-guidance">市町村を選んで、経験を記録しましょう。</p></div><a class="button secondary" id="view-record" href="./view.html">記録を見る <span aria-hidden="true">↗</span></a></div>
+        <div class="quick-input" id="quick-input">
+          <div class="quick-input-heading"><button class="button secondary" id="quick-toggle" aria-pressed="false" aria-controls="quick-controls">高速入力モード <span id="quick-toggle-state">OFF</span></button><p>同じ経験を、地図から続けて記録</p></div>
+          <div id="quick-controls" hidden>
+            <div class="quick-levels" id="quick-levels" role="radiogroup" aria-label="クリックした市町村に記録する経験"></div>
+            <div class="quick-input-footer"><p id="quick-instructions">クリックしたまちを選んだ経験で上書きします。メモはそのまま残ります。</p><button class="button secondary" id="quick-undo" disabled>1つ戻す</button></div>
+            <p class="quick-status" id="quick-status" role="status">経験を選んで、市町村を次々クリックしてください。</p>
+          </div>
+        </div>
         <div class="map-canvas" id="map-canvas">
           <span class="map-coordinate top-left">45° N / 139° E</span><span class="map-coordinate bottom-right">HOKKAIDO, JAPAN</span>
           <svg class="hokkaido-map" id="hokkaido-map" viewBox="105 5 650 570" aria-labelledby="map-title map-description"><title id="map-title">北海道179市町村の経験マップ</title><desc id="map-description">市町村をクリック、またはTabキーとEnterキーで選択できます。下の一覧からも検索できます。</desc><g id="map-shapes"></g><g id="map-labels" aria-hidden="true"></g></svg>
@@ -83,7 +91,7 @@
     <footer><a class="footer-brand" href="./">経道値<span>KEIDOCHI</span></a><p>179のまち。179通りの出会い。</p><div><a class="text-button" href="https://github.com/yumu19/keidochi" target="_blank" rel="noopener noreferrer" aria-label="経道値のGitHubリポジトリ（新しいタブで開きます）">GitHub <span aria-hidden="true">↗</span></a><button class="text-button" id="about-open">このアプリについて</button><span>© 2026 <a href="https://x.com/yumu19" target="_blank" rel="noopener noreferrer" aria-label="yumu19のXプロフィール（新しいタブで開きます）">yumu19</a></span></div></footer>
   </main>
 
-  <dialog id="help-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">HOW TO KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>旅の思い出を、経道値に。</h2><p>地図または一覧から市町村を選び、これまでの経験にいちばん近いレベルを選んでください。</p><div id="help-levels"></div><div class="help-note"><strong>経験は、いちばん高いレベルを記録。</strong><p>「訪問」と「宿泊」の両方があれば「宿泊」を選びます。各市町村のポイントを合計したものが経道値です。全179市町村で、最大895ポイント。</p></div><p class="dialog-caption">本アプリ独自の基準です。接地は乗り換え・休憩等で降りた場合、訪問は観光や用事でまちを訪れた場合を目安にしてください。</p><button class="button primary close-dialog full-width">記録をはじめる</button></dialog>
+  <dialog id="help-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">HOW TO KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>旅の思い出を、経道値に。</h2><p>地図または一覧から市町村を選び、これまでの経験にいちばん近いレベルを選んでください。</p><div id="help-levels"></div><div class="help-note"><strong>同じ経験を続けて記録するには</strong><p>地図上部の「高速入力モード」をONにして経験を選ぶと、市町村をクリックするたびに記録できます。経験は上書きされ、メモは残ります。押し間違えたら「1つ戻す」で取り消せます。</p></div><div class="help-note"><strong>経験は、いちばん高いレベルを記録。</strong><p>「訪問」と「宿泊」の両方があれば「宿泊」を選びます。各市町村のポイントを合計したものが経道値です。全179市町村で、最大895ポイント。</p></div><p class="dialog-caption">本アプリ独自の基準です。接地は乗り換え・休憩等で降りた場合、訪問は観光や用事でまちを訪れた場合を目安にしてください。</p><button class="button primary close-dialog full-width">記録をはじめる</button></dialog>
 
   <dialog id="data-dialog" class="dialog" aria-labelledby="data-title">
     <div class="dialog-top"><span class="eyebrow">JSON DATA</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div>

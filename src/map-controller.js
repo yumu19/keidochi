@@ -2,7 +2,7 @@ import { municipalities } from './municipalities.js';
 import { populations } from './population.js';
 import { LEVELS } from './model.js';
 
-export function createMapController({ document, getRecords, getSelectedId, onSelect, readOnly = false }) {
+export function createMapController({ document, getRecords, getSelectedId, onSelect, readOnly = false, getHint = () => null }) {
   const window = document.defaultView;
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
@@ -107,8 +107,14 @@ export function createMapController({ document, getRecords, getSelectedId, onSel
     $('#hokkaido-map').classList.toggle('zoomed', zoom > 1);
     $('#zoom-out').disabled = zoom <= 1;
     $('#zoom-in').disabled = zoom >= 4;
-    $('.map-hint span:last-child').textContent = zoom > 1 ? 'ドラッグで地図を移動' : readOnly ? 'まちを選んで経験を確認' : 'まちを選んで記録';
+    refreshHint();
     $('#map-tooltip').hidden = true;
+  }
+  function refreshHint() {
+    const inputHint = getHint();
+    $('.map-hint span:last-child').textContent = inputHint
+      ? `${inputHint}${zoom > 1 ? ' / ドラッグで移動' : ''}`
+      : zoom > 1 ? 'ドラッグで地図を移動' : readOnly ? 'まちを選んで経験を確認' : 'まちを選んで記録';
   }
   $('#zoom-in').addEventListener('click', () => {
     if (zoom === 1) { const city = byId.get(getSelectedId()); center = { x: city.point[0], y: city.point[1] }; }
@@ -150,5 +156,5 @@ export function createMapController({ document, getRecords, getSelectedId, onSel
   createMap();
   renderViewbox();
 
-  return { render: renderMapState, fullViewBox: `${mapLeft} ${mapTop} ${mapWidth} ${mapHeight}` };
+  return { render: renderMapState, refreshHint, fullViewBox: `${mapLeft} ${mapTop} ${mapWidth} ${mapHeight}` };
 }
