@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 await rm(`${root}dist`, { recursive: true, force: true });
 await mkdir(`${root}dist`, { recursive: true });
-for (const file of ['index.html', 'src', 'assets', 'favicon.svg']) {
+for (const file of ['index.html', 'view.html', 'src', 'assets', 'favicon.svg']) {
   await cp(`${root}${file}`, `${root}dist/${file}`, { recursive: true });
 }
 console.log('Built dist/ — deploy this directory to any static host.');

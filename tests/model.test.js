@@ -104,7 +104,7 @@ test('X share contains aggregate results, excludes notes and omits local preview
   assert.match(url.searchParams.get('text'), /あと178のまちが、あなたを待っています。/);
   assert.equal(url.searchParams.get('hashtags'), '経道値');
   const sharedPage = new URL(url.searchParams.get('url'));
-  assert.equal(sharedPage.origin + sharedPage.pathname, 'https://example.com/keidochi/');
+  assert.equal(sharedPage.origin + sharedPage.pathname, 'https://example.com/keidochi/view.html');
   assert.equal(sharedPage.search, '');
   assert.equal(readSharedLink(sharedPage.href).records['01100'].level, 4);
   assert.ok(!url.href.includes('private'));

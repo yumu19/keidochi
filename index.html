@@ -26,7 +26,7 @@
   <title>経道値｜北海道179市町村の旅行記録</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./src/style.css">
-  <script type="module" src="./src/app.js"></script>
+  <script type="module" src="./src/main.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">本文へスキップ</a>
@@ -40,10 +40,6 @@
 
   <main id="main">
     <h1 class="sr-only">経道値 — 北海道の旅行記録</h1>
-    <section class="shared-notice" id="shared-view" role="status" hidden>
-      <div><strong id="shared-view-title">共有された記録を表示しています</strong><p id="shared-view-description">閲覧専用です。あなたが入力した記録は変更されません。</p></div>
-      <button class="button secondary" id="shared-exit">自分の記録に戻る</button>
-    </section>
     <section class="overview" aria-label="旅の集計">
       <div class="score-card"><div class="score-card-top" id="score-label">あなたの経道値</div><div class="score-value"><strong id="total-score">0</strong><span>/ 895 <small>pt</small></span></div><div class="score-track"><span id="score-progress"></span></div><div class="score-card-bottom"><span id="score-message">あと179のまちが、あなたを待っています。</span></div></div>
       <div class="overview-item"><span class="overview-icon" data-icon="pin"></span><div><span class="stat-label">足あとを残したまち <small>通過以上</small></span><div class="stat-value"><strong id="touched-count">0</strong><span>/ 179 市町村</span></div></div></div>
@@ -55,7 +51,7 @@
     <div id="storage-warning" class="warning" role="alert" hidden></div>
     <section class="workspace" id="workspace" aria-label="地図から旅を記録">
       <div class="map-card panel">
-        <div class="panel-heading"><div class="map-heading-copy"><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p id="map-guidance">市町村を選んで、経験を記録しましょう。</p></div><span class="small-tag">全179市町村</span></div>
+        <div class="panel-heading"><div class="map-heading-copy"><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p id="map-guidance">市町村を選んで、経験を記録しましょう。</p></div><a class="button secondary" id="view-record" href="./view.html">記録を見る <span aria-hidden="true">↗</span></a></div>
         <div class="map-canvas" id="map-canvas">
           <span class="map-coordinate top-left">45° N / 139° E</span><span class="map-coordinate bottom-right">HOKKAIDO, JAPAN</span>
           <svg class="hokkaido-map" id="hokkaido-map" viewBox="105 5 650 570" aria-labelledby="map-title map-description"><title id="map-title">北海道179市町村の経験マップ</title><desc id="map-description">市町村をクリック、またはTabキーとEnterキーで選択できます。下の一覧からも検索できます。</desc><g id="map-shapes"></g><g id="map-labels" aria-hidden="true"></g></svg>

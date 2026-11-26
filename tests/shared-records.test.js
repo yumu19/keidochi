@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { municipalities } from '../src/municipalities.js';
-import { encodeSharedRecords, decodeSharedRecords, createRecordLink, readSharedLink } from '../src/shared-records.js';
+import { encodeSharedRecords, decodeSharedRecords, createRecordLink, readSharedLink, viewPageUrl } from '../src/shared-records.js';
 
 test('link encoding round-trips all 179 municipality levels and omits notes and dates', () => {
   const records = Object.fromEntries(municipalities.map((city, index) => [city.id, {
@@ -18,9 +18,9 @@ test('link encoding round-trips all 179 municipality levels and omits notes and 
   }
   assert.ok(Object.isFrozen(decoded));
   const link = createRecordLink(records, 'https://example.com/keidochi/?private=test#workspace');
-  assert.ok(link.length < 150);
+  assert.ok(link.length < 160);
   const url = new URL(link);
-  assert.equal(url.origin + url.pathname, 'https://example.com/keidochi/');
+  assert.equal(url.origin + url.pathname, 'https://example.com/keidochi/view.html');
   assert.equal(url.search, '');
   assert.ok(!link.includes('PRIVATE') && !link.includes('2026-11-26') && !link.includes('private'));
   assert.deepEqual(readSharedLink(link).records, decoded);
@@ -33,6 +33,16 @@ test('empty and complete maps retain exact municipality values', () => {
     const decoded = decodeSharedRecords(encodeSharedRecords(records));
     assert.equal(Object.keys(decoded).length, 179);
     assert.ok(Object.values(decoded).every(record => record.level === level));
+  }
+});
+
+test('editor, viewer and legacy URLs all resolve to the dedicated viewer under the same base path', () => {
+  const base = 'https://example.com/nested/keidochi/';
+  const records = { '01100': { level: 4 } };
+  const expected = createRecordLink(records, base);
+  for (const source of [base, base + 'index.html', base + 'view.html']) {
+    assert.equal(createRecordLink(records, source + '?private=1#workspace'), expected);
+    assert.equal(viewPageUrl(source + '?private=1#share=legacy'), base + 'view.html#share=legacy');
   }
 });
 

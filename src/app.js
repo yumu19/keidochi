@@ -1,8 +1,10 @@
+import { createMapController } from './map-controller.js';
+import { createCityList } from './city-list.js';
+import { createShareController } from './share-controller.js';
+import { createRecordLink } from './shared-records.js';
+import { renderIcons, createToast, renderOverview, createLevelPresentation, bindDialogs } from './record-display.js';
 import { municipalities } from './municipalities.js';
-import { populations } from './population.js';
-import { createShareSvg, createShareImage, canShareImage, imageShareData } from './share-image.js';
-import { createRecordLink, readSharedLink } from './shared-records.js';
-import { LEVELS, STORAGE_KEY, loadRecords, saveRecords, summarize, filterMunicipalities, shareUrl, validatePayload, progressMessage } from './model.js';
+import { LEVELS, STORAGE_KEY, loadRecords, saveRecords, summarize, validatePayload } from './model.js';
 
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -11,52 +13,23 @@ const validIds = new Set(byId.keys());
 let storage;
 try { storage = window.localStorage; } catch { storage = null; }
 const loaded = loadRecords(storage, validIds);
-let sharedView = readSharedLink(window.location.href);
-let records = sharedView ? sharedView.records : loaded.records;
+let records = loaded.records;
 let storageError = loaded.error;
-let ownDraft = null;
 let selectedId = '01100';
-let showAll = false;
 let noteTimer;
-let toastTimer;
 let pendingImport = null;
-let dragging = false;
-let ignoreMapClick = false;
-let zoom = 1;
-const [mapLeft, mapTop, mapWidth, mapHeight] = $('#hokkaido-map').getAttribute('viewBox').split(/\s+/).map(Number);
-const mapCenter = { x: mapLeft + mapWidth / 2, y: mapTop + mapHeight / 2 };
-let center = { ...mapCenter };
-const svgNS = 'http://www.w3.org/2000/svg';
-
-const icons = {
-  pin: '<path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/>',
-  flag: '<path d="M5 22V3m0 1c5-4 9 4 14 0v10c-5 4-9-4-14 0"/>',
-  moon: '<path d="M20.5 13A8.6 8.6 0 0 1 11 3.5 8.8 8.8 0 1 0 20.5 13Z"/><path d="M18 3v4m-2-2h4"/>',
-  map: '<path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2Zm6-2v16m6-14v16"/>',
-  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/>',
-  download: '<path d="M12 3v12m-4-4 4 4 4-4M4 15v5h16v-5"/>',
-  upload: '<path d="M12 16V4m-4 4 4-4 4 4M4 15v5h16v-5"/>',
-  check: '<path d="m5 12 4 4 10-10"/>',
-  expand: '<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/>',
-  cursor: '<path d="m4 3 6 17 3-7 7-3Z"/>',
+const toast = createToast(document);
+const renderStats = () => {
+  renderOverview(document, records);
+  $('#view-record').href = createRecordLink(records, window.location.href);
 };
-
-for (const element of $$('[data-icon]')) {
-  element.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[element.dataset.icon] || ''}</svg>`;
-}
-
-function toast(message, isError = false) {
-  window.clearTimeout(toastTimer);
-  $('#toast').textContent = message;
-  $('#toast').classList.toggle('error', isError);
-  $('#toast').hidden = false;
-  toastTimer = window.setTimeout(() => { $('#toast').hidden = true; }, isError ? 6500 : 3200);
-}
+const renderMapState = () => mapController.render();
+const renderList = () => cityList.render();
 
 function updateStorageWarning() {
   const warning = $('#storage-warning');
-  warning.hidden = !!sharedView || !storageError;
-  $('#local-status').classList.toggle('failed', !sharedView && !!storageError);
+  warning.hidden = !storageError;
+  $('#local-status').classList.toggle('failed', !!storageError);
   $('#local-status').title = storageError ? '保存データを確認してください。クリックしてバックアップ・復元を開きます。' : '記録のバックアップ・復元を開く';
   if (storageError) {
     warning.replaceChildren(document.createTextNode('保存した記録を読み込めませんでした。既存データを保護するため記録を停止しています。保存機能が有効か確認し、バックアップを読み込むか、データ管理からリセットしてください。'));
@@ -65,16 +38,11 @@ function updateStorageWarning() {
     button.addEventListener('click', () => openDialog('data-dialog'));
     warning.append(button);
   }
-  for (const input of $$('input[name="experience"]')) input.disabled = !!sharedView || !!storageError;
-  $('#travel-note').disabled = !!sharedView || !!storageError;
-  for (const button of $$('.data-open')) button.disabled = !!sharedView;
+  for (const input of $$('input[name="experience"]')) input.disabled = !!storageError;
+  $('#travel-note').disabled = !!storageError;
 }
 
 function commit(nextRecords, { recover = false } = {}) {
-  if (sharedView || readSharedLink(window.location.href)) {
-    toast('共有された記録は閲覧専用です。自分の記録に戻ってから操作してください。', true);
-    return false;
-  }
   if (storageError && !recover) {
     toast('保存できない状態です。データ管理を確認してください。', true);
     return false;
@@ -97,7 +65,6 @@ function commit(nextRecords, { recover = false } = {}) {
 }
 
 function saveSelected(level = records[selectedId]?.level ?? 0, note = $('#travel-note').value) {
-  if (sharedView) return true;
   const previous = records[selectedId];
   const nextNote = note.slice(0, 200);
   if ((previous?.level ?? 0) === level && (previous?.note ?? '') === nextNote) return true;
@@ -113,107 +80,6 @@ function saveSelected(level = records[selectedId]?.level ?? 0, note = $('#travel
 function flushNote() {
   window.clearTimeout(noteTimer);
   return saveSelected();
-}
-
-function renderStats() {
-  const summary = summarize(records);
-  $('#total-score').textContent = summary.score;
-  $('#touched-count').textContent = summary.touched;
-  $('#visited-count').textContent = summary.visited;
-  $('#stayed-count').textContent = summary.stayed;
-  $('#coverage').replaceChildren(document.createTextNode(summary.percent), Object.assign(document.createElement('small'), { textContent: '%' }));
-  $('#score-progress').style.width = `${summary.score / 895 * 100}%`;
-  $('#coverage-progress').style.width = `${summary.touched / 179 * 100}%`;
-  $('#score-message').textContent = progressMessage(summary.touched);
-  for (const item of $$('.legend-item')) {
-    const level = Number(item.dataset.level);
-    item.querySelector('small').textContent = summary.counts[level];
-    item.title = `${LEVELS[level].label}：${summary.counts[level]}市町村`;
-  }
-}
-
-function svgElement(name, attributes) {
-  const element = document.createElementNS(svgNS, name);
-  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
-  return element;
-}
-
-function createMap() {
-  const fragment = document.createDocumentFragment();
-  for (const city of municipalities) {
-    const path = svgElement('path', { d: city.path, 'data-city-id': city.id, class: 'city-shape', tabindex: '0', role: 'button' });
-    path.addEventListener('click', () => { if (!ignoreMapClick) selectCity(city.id, true); });
-    path.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectCity(city.id, true); }
-    });
-    path.addEventListener('pointermove', event => {
-      if (event.pointerType === 'touch' || dragging) return;
-      const bounds = $('#map-canvas').getBoundingClientRect();
-      const tooltip = $('#map-tooltip');
-      tooltip.textContent = `${city.name} · ${LEVELS[records[city.id]?.level ?? 0].label}`;
-      tooltip.hidden = false;
-      const tooltipMargin = tooltip.offsetWidth / 2 + 8;
-      tooltip.style.left = `${Math.max(tooltipMargin, Math.min(bounds.width - tooltipMargin, event.clientX - bounds.left))}px`;
-      tooltip.style.top = `${Math.max(48, event.clientY - bounds.top)}px`;
-    });
-    path.addEventListener('pointerleave', () => { $('#map-tooltip').hidden = true; });
-    fragment.append(path);
-  }
-  $('#map-shapes').append(fragment);
-  const landmarks = new Set([
-    '稚内市', '名寄市', '留萌市', '紋別市',
-    '網走市', '根室市', '富良野市', '室蘭市',
-    '岩見沢市', '倶知安町', '江差町', '浦河町',
-  ]);
-  const hiddenLabels = new Set(['江別市']);
-  const labels = municipalities.filter(city => !hiddenLabels.has(city.name) &&
-    ((city.name.endsWith('市') && populations[city.name] >= 100000) || landmarks.has(city.name)));
-  const labelPositions = {
-    '小樽市': { dx: -8, dy: -7, anchor: 'end' },
-    '札幌市': { dx: 8, dy: 17, anchor: 'start' },
-    '苫小牧市': { dx: 7, dy: 18, anchor: 'start' },
-    '北見市': { dx: 8, dy: 17, anchor: 'start' },
-    '留萌市': { dx: -8, dy: 4, anchor: 'end' },
-    '紋別市': { dx: 7, dy: -20, anchor: 'start' },
-    '網走市': { dx: -8, dy: -15, anchor: 'end' },
-    '室蘭市': { dx: -8, dy: 4, anchor: 'end' },
-    '岩見沢市': { dx: -8, dy: -38, anchor: 'end' },
-    '倶知安町': { dx: -8, dy: 4, anchor: 'end' },
-    '江差町': { dx: -8, dy: 4, anchor: 'end' },
-  };
-  for (const city of labels) {
-    const major = populations[city.name] >= 100000;
-    const [x, y] = city.point;
-    const { dx, dy, anchor } = labelPositions[city.name] ?? { dx: 7, dy: 4, anchor: 'start' };
-    if (Math.abs(dy) > 28) {
-      $('#map-labels').append(svgElement('line', {
-        x1: x, y1: y, x2: x + dx + 3, y2: y + dy + 7,
-        stroke: '#51717e', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke', 'pointer-events': 'none',
-      }));
-    }
-    $('#map-labels').append(svgElement('circle', { cx: x, cy: y, r: major ? 3 : 2.5, class: 'map-label-dot' }));
-    const label = svgElement('text', {
-      x: x + dx, y: y + dy, 'text-anchor': anchor,
-      class: `map-city-label${major ? ' major-city-label' : ''}`, 'data-city-id': city.id,
-    });
-    label.textContent = city.name.replace(/[市町村]$/, '');
-    $('#map-labels').append(label);
-  }
-  renderMapState();
-}
-
-function renderMapState() {
-  for (const path of $$('.city-shape')) {
-    const city = byId.get(path.dataset.cityId);
-    const level = records[city.id]?.level ?? 0;
-    path.style.fill = LEVELS[level].color;
-    path.classList.toggle('selected', city.id === selectedId);
-    path.setAttribute('aria-label', `${city.name}、${LEVELS[level].label}、${level}ポイント`);
-    path.setAttribute('aria-pressed', String(city.id === selectedId));
-  }
-  // Draw the selected boundary last, so adjacent municipalities cannot cover it.
-  const selected = $(`.city-shape[data-city-id="${selectedId}"]`);
-  if (selected) $('#map-shapes').append(selected);
 }
 
 function updateEditorBadge() {
@@ -233,7 +99,7 @@ function renderEditor() {
   for (const input of $$('input[name="experience"]')) input.checked = Number(input.value) === level;
   $('#travel-note').value = records[selectedId]?.note ?? '';
   $('#note-count').textContent = $('#travel-note').value.length;
-  $('#save-status span:last-child').textContent = sharedView ? '共有された記録を表示中（閲覧専用）' : records[selectedId] ? 'このブラウザーに保存済み' : '選んだ経験を自動で保存します';
+  $('#save-status span:last-child').textContent = records[selectedId] ? 'このブラウザーに保存済み' : '選んだ経験を自動で保存します';
   updateEditorBadge();
 }
 
@@ -256,82 +122,16 @@ function createLevelUI() {
     option.innerHTML = `<input type="radio" name="experience" value="${index}" aria-label="${level.label} ${index}ポイント：${level.description}"><span class="option-dot" style="background:${level.color}"></span><span class="option-copy"><strong>${level.label}</strong><small>${level.description}</small></span><span class="option-points">${index}<small>pt</small></span><span class="option-check" aria-hidden="true"></span>`;
     option.querySelector('input').addEventListener('change', () => {
       window.clearTimeout(noteTimer);
-      if (sharedView) { renderEditor(); return; }
       if (!saveSelected(index)) {
         for (const input of $$('input[name="experience"]')) input.checked = Number(input.value) === (records[selectedId]?.level ?? 0);
         $('#save-status span:last-child').textContent = '保存できませんでした。メモをコピーして保管してください';
       }
     });
     $('#experience-options').prepend(option);
-    const legend = document.createElement('div');
-    legend.className = 'legend-item';
-    legend.dataset.level = index;
-    legend.innerHTML = `<span class="color-dot" style="--dot-color:${level.color}"></span>${level.label}<small>0</small>`;
-    $('#map-legend').append(legend);
-    const help = document.createElement('div');
-    help.className = 'help-level';
-    help.innerHTML = `<span class="color-dot" style="--dot-color:${level.color}"></span><strong>${level.label}</strong><span>${level.description}</span><small>${index} pt</small>`;
-    $('#help-levels').append(help);
-    const filterOption = document.createElement('option');
-    filterOption.value = index;
-    filterOption.textContent = `${level.label}（${index} pt）`;
-    $('#level-filter').append(filterOption);
   });
-  const regions = [...new Set(municipalities.map(city => city.region))].sort((a, b) => a.localeCompare(b, 'ja'));
-  for (const region of regions) {
-    const option = document.createElement('option');
-    option.value = region;
-    option.textContent = region;
-    $('#region-filter').append(option);
-  }
 }
 
-function renderList() {
-  const filters = { query: $('#city-search').value, region: $('#region-filter').value, level: $('#level-filter').value };
-  const filtered = filterMunicipalities(municipalities, records, filters);
-  const hasFilter = !!(filters.query || filters.region || filters.level !== '');
-  const visible = showAll || hasFilter ? filtered : filtered.slice(0, 12);
-  const fragment = document.createDocumentFragment();
-  for (const city of visible) {
-    const level = records[city.id]?.level ?? 0;
-    const item = document.createElement('button');
-    item.className = `city-list-item${selectedId === city.id ? ' active' : ''}`;
-    item.dataset.cityId = city.id;
-    item.setAttribute('aria-label', `${city.name}、${LEVELS[level].label}。${sharedView ? '共有された経験を確認' : '記録を編集'}`);
-    item.innerHTML = `<span class="color-dot" style="--dot-color:${LEVELS[level].color}"></span><span class="list-city-name">${city.name}<small>${city.region}</small></span><span class="list-city-level">${LEVELS[level].label}</span><span class="city-chevron" aria-hidden="true">›</span>`;
-    item.addEventListener('click', () => {
-      selectCity(city.id);
-      $('#record-card').scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion:reduce)').matches ? 'instant' : 'smooth', block: 'start' });
-      $('#record-title').setAttribute('tabindex', '-1');
-      $('#record-title').focus({ preventScroll: true });
-    });
-    fragment.append(item);
-  }
-  $('#city-grid').replaceChildren(fragment);
-  $('#result-count').textContent = filtered.length;
-  $('#empty-state').hidden = filtered.length > 0;
-  $('#show-all').hidden = hasFilter || filtered.length <= 12;
-  $('#show-all').innerHTML = showAll ? '表示を少なくする <span aria-hidden="true">↑</span>' : `すべての市町村を表示（179） <span aria-hidden="true">↓</span>`;
-}
-
-$('#city-search').addEventListener('input', renderList);
-$('#region-filter').addEventListener('change', renderList);
-$('#level-filter').addEventListener('change', renderList);
-$('#clear-filters').addEventListener('click', () => {
-  $('#city-search').value = '';
-  $('#region-filter').value = '';
-  $('#level-filter').value = '';
-  showAll = false;
-  renderList();
-  $('#city-search').focus();
-});
-$('#show-all').addEventListener('click', () => {
-  showAll = !showAll;
-  renderList();
-  if (!showAll) $('#municipalities').scrollIntoView({ block: 'start' });
-});
 $('#travel-note').addEventListener('input', () => {
-  if (sharedView) { renderEditor(); return; }
   $('#note-count').textContent = $('#travel-note').value.length;
   $('#save-status span:last-child').textContent = '保存中…';
   window.clearTimeout(noteTimer);
@@ -343,70 +143,16 @@ $('#travel-note').addEventListener('blur', () => { flushNote(); });
 window.addEventListener('pagehide', () => { flushNote(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNote(); });
 
-function renderViewbox() {
-  const width = mapWidth / zoom, height = mapHeight / zoom;
-  center.x = Math.max(mapLeft + width / 2, Math.min(mapLeft + mapWidth - width / 2, center.x));
-  center.y = Math.max(mapTop + height / 2, Math.min(mapTop + mapHeight - height / 2, center.y));
-  $('#hokkaido-map').setAttribute('viewBox', `${center.x - width / 2} ${center.y - height / 2} ${width} ${height}`);
-  $('#hokkaido-map').classList.toggle('zoomed', zoom > 1);
-  $('#zoom-out').disabled = zoom <= 1;
-  $('#zoom-in').disabled = zoom >= 4;
-  $('.map-hint span:last-child').textContent = zoom > 1 ? 'ドラッグで地図を移動' : 'まちを選んで記録';
-  $('#map-tooltip').hidden = true;
-}
-$('#zoom-in').addEventListener('click', () => {
-  if (zoom === 1) { const city = byId.get(selectedId); center = { x: city.point[0], y: city.point[1] }; }
-  zoom = Math.min(4, zoom * 1.4); renderViewbox();
-});
-$('#zoom-out').addEventListener('click', () => { zoom = Math.max(1, zoom / 1.4); renderViewbox(); });
-$('#zoom-reset').addEventListener('click', () => { zoom = 1; center = { ...mapCenter }; renderViewbox(); });
-let pointerStart = null;
-$('#hokkaido-map').addEventListener('pointerdown', event => {
-  ignoreMapClick = false;
-  if (zoom <= 1 || event.button !== 0) return;
-  pointerStart = { x: event.clientX, y: event.clientY, center: { ...center } };
-});
-$('#hokkaido-map').addEventListener('pointermove', event => {
-  if (!pointerStart) return;
-  const dx = event.clientX - pointerStart.x;
-  const dy = event.clientY - pointerStart.y;
-  if (!dragging && Math.hypot(dx, dy) < 5) return;
-  dragging = true;
-  ignoreMapClick = true;
-  $('#hokkaido-map').classList.add('dragging');
-  if (!$('#hokkaido-map').hasPointerCapture(event.pointerId)) $('#hokkaido-map').setPointerCapture(event.pointerId);
-  const bounds = $('#hokkaido-map').getBoundingClientRect();
-  const scale = Math.min(bounds.width / (mapWidth / zoom), bounds.height / (mapHeight / zoom));
-  center.x = pointerStart.center.x - dx / scale;
-  center.y = pointerStart.center.y - dy / scale;
-  renderViewbox();
-});
-function endDrag(event) {
-  pointerStart = null;
-  dragging = false;
-  $('#hokkaido-map').classList.remove('dragging');
-  if ($('#hokkaido-map').hasPointerCapture(event.pointerId)) $('#hokkaido-map').releasePointerCapture(event.pointerId);
-}
-$('#hokkaido-map').addEventListener('pointerup', endDrag);
-$('#hokkaido-map').addEventListener('pointercancel', endDrag);
-$('#hokkaido-map').addEventListener('pointerleave', () => { if (!dragging) pointerStart = null; });
-
 function openDialog(id) {
-  if (sharedView && id === 'data-dialog') return;
   if (!storageError && !flushNote()) return;
   $(`#${id}`).showModal();
 }
+$('#view-record').addEventListener('click', event => {
+  if (!storageError && !flushNote()) event.preventDefault();
+});
 $('#help-open').addEventListener('click', () => openDialog('help-dialog'));
 $('#about-open').addEventListener('click', () => openDialog('about-dialog'));
 for (const button of $$('.data-open')) button.addEventListener('click', () => openDialog('data-dialog'));
-for (const button of $$('.close-dialog')) button.addEventListener('click', () => button.closest('dialog').close());
-for (const dialog of $$('dialog')) {
-  dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
-    const rect = dialog.getBoundingClientRect();
-    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
-  });
-}
 $('#data-dialog').addEventListener('close', () => {
   pendingImport = null;
   $('#import-preview').hidden = true;
@@ -415,124 +161,7 @@ $('#data-dialog').addEventListener('close', () => {
   $('#import-data').value = '';
 });
 
-let shareFile = null;
-let sharePreviewUrl = null;
-let shareIntentUrl = '';
-let shareRecordUrl = '';
-let shareGeneration = 0;
-
-function clearShareImage() {
-  shareFile = null;
-  if (sharePreviewUrl) window.URL.revokeObjectURL(sharePreviewUrl);
-  sharePreviewUrl = null;
-  $('#share-preview').removeAttribute('src');
-  $('#share-preview').hidden = true;
-}
-
-async function prepareShareImage() {
-  const generation = ++shareGeneration;
-  clearShareImage();
-  $('#share-status').textContent = '入力済みの地図から画像を作成しています…';
-  $('#share-error').hidden = true;
-  $('#share-retry').hidden = true;
-  $('#share-native').hidden = true;
-  $('#share-download').disabled = true;
-  $('#share-instructions').hidden = true;
-  const snapshot = { ...records };
-  shareIntentUrl = shareUrl(snapshot, window.location.href);
-  shareRecordUrl = createRecordLink(snapshot, window.location.href);
-  $('#share-link-field').hidden = true;
-  $('#share-link-url').value = shareRecordUrl;
-  try {
-    const svg = createShareSvg($('#hokkaido-map'), snapshot, `${mapLeft} ${mapTop} ${mapWidth} ${mapHeight}`, { shared: !!sharedView });
-    const file = await createShareImage(svg);
-    if (generation !== shareGeneration || !$('#share-dialog').open) return;
-    shareFile = file;
-    sharePreviewUrl = window.URL.createObjectURL(file);
-    $('#share-preview').src = sharePreviewUrl;
-    $('#share-preview').hidden = false;
-    $('#share-download').disabled = false;
-    const nativeSharing = canShareImage(file, window.navigator);
-    $('#share-native').hidden = !nativeSharing;
-    $('#share-native').disabled = false;
-    $('#share-status').textContent = '記録を反映した地図画像ができました。メモは含まれません。';
-    $('#share-instructions').textContent = nativeSharing
-      ? '「画像付きで共有」から共有先にXを選んでください。Xが表示されない場合は、画像を保存して投稿画面で添付できます。'
-      : '①画像を保存 → ②Xの投稿画面を開く → ③保存した画像を添付してください。投稿画面に画像は自動添付されません。';
-    $('#share-instructions').hidden = false;
-  } catch {
-    if (generation !== shareGeneration || !$('#share-dialog').open) return;
-    $('#share-status').textContent = '地図画像を作成できませんでした。';
-    $('#share-error').textContent = 'もう一度お試しください。Xの投稿画面を開いて、テキストのみで共有することもできます。';
-    $('#share-error').hidden = false;
-    $('#share-retry').hidden = false;
-  }
-}
-
-function share() {
-  if (sharedView?.error) return;
-  if (!storageError && !flushNote()) return;
-  if ($('#share-dialog').open) return;
-  $('#share-dialog').showModal();
-  void prepareShareImage();
-}
-$('#share-top').addEventListener('click', share);
-$('#share-bottom').addEventListener('click', share);
-$('#share-copy-link').addEventListener('click', async () => {
-  if (!shareRecordUrl) return;
-  try {
-    if (!window.navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
-    await window.navigator.clipboard.writeText(shareRecordUrl);
-    toast('記録付きリンクをコピーしました');
-  } catch {
-    $('#share-link-field').hidden = false;
-    $('#share-link-url').focus();
-    $('#share-link-url').select();
-    toast('リンクを選択しました。コピーして共有してください。');
-  }
-});
-$('#share-retry').addEventListener('click', () => { void prepareShareImage(); });
-$('#share-dialog').addEventListener('close', () => {
-  shareGeneration++;
-  clearShareImage();
-});
-$('#share-download').addEventListener('click', () => {
-  if (!shareFile || !sharePreviewUrl) return;
-  const link = document.createElement('a');
-  link.href = sharePreviewUrl;
-  link.download = shareFile.name;
-  link.click();
-});
-$('#share-x').addEventListener('click', () => {
-  if (!shareIntentUrl) return;
-  const link = document.createElement('a');
-  link.href = shareIntentUrl;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.click();
-});
-$('#share-native').addEventListener('click', async () => {
-  if (!shareFile) return;
-  const generation = shareGeneration;
-  $('#share-native').disabled = true;
-  try {
-    // The image is already ready: invoke sharing directly from this user gesture.
-    await window.navigator.share(imageShareData(shareFile, shareIntentUrl));
-    if (generation === shareGeneration) {
-      $('#share-dialog').close();
-      toast('共有先に地図画像を渡しました');
-    }
-  } catch (error) {
-    if (generation !== shareGeneration || error.name === 'AbortError') return;
-    $('#share-error').textContent = '画像付きで共有できませんでした。画像を保存し、Xの投稿画面で添付してください。';
-    $('#share-error').hidden = false;
-  } finally {
-    if (generation === shareGeneration) $('#share-native').disabled = false;
-  }
-});
-
 $('#export-data').addEventListener('click', () => {
-  if (sharedView) return;
   if (storageError) { toast('既存データを正常に読み込めないため、書き出せません。', true); return; }
   if (!flushNote()) return;
   const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), records }, null, 2)], { type: 'application/json' });
@@ -547,9 +176,8 @@ $('#export-data').addEventListener('click', () => {
   toast('バックアップを書き出しました');
 });
 
-$('#import-open').addEventListener('click', () => { if (!sharedView) $('#import-data').click(); });
+$('#import-open').addEventListener('click', () => $('#import-data').click());
 $('#import-data').addEventListener('change', async event => {
-  if (sharedView) return;
   const file = event.target.files?.[0];
   if (!file) return;
   $('#import-error').hidden = true;
@@ -594,7 +222,6 @@ $('#reset-confirm-button').addEventListener('click', () => {
 // Keep other tabs in sync while preserving the current note draft.
 window.addEventListener('storage', event => {
   if (event.key !== STORAGE_KEY && event.key !== null) return;
-  if (sharedView) return;
   const hasDraft = $('#travel-note').value !== (records[selectedId]?.note ?? '');
   const result = loadRecords(storage, validIds);
   records = result.records;
@@ -607,73 +234,13 @@ window.addEventListener('storage', event => {
   } else renderEditor();
 });
 
-function renderSharedMode() {
-  document.body.classList.toggle('viewing-shared-record', !!sharedView);
-  $('#shared-view').hidden = !sharedView;
-  $('#shared-view').classList.toggle('invalid', !!sharedView?.error);
-  $('#shared-view-title').textContent = sharedView?.error ? '共有リンクのデータを読み込めませんでした' : '共有された記録を表示しています';
-  $('#shared-view-description').textContent = sharedView?.error
-    ? 'リンクが不正か、対応していない形式です。自分の記録は変更していません。'
-    : '閲覧専用です。あなたが入力した記録は変更されません。共有リンクにメモは含まれません。';
-  $('#score-label').textContent = sharedView ? '共有された経道値' : 'あなたの経道値';
-  $('#map-guidance').textContent = sharedView ? '市町村を選んで、共有された経験を確認できます。' : '市町村を選んで、経験を記録しましょう。';
-  $('#travel-note').placeholder = sharedView ? '共有リンクにメモは含まれません' : 'お気に入りの景色、おいしかったもの…';
-  updateStorageWarning();
-  if (sharedView) $('#local-status').title = '自分の記録に戻ると、バックアップ・復元を利用できます。';
-  $('#share-top').disabled = !!sharedView?.error;
-  $('#share-bottom').disabled = !!sharedView?.error;
-}
-
-function applyLocation() {
-  const next = readSharedLink(window.location.href);
-  if (!sharedView && !next) return;
-  window.clearTimeout(noteTimer);
-  if (!sharedView && next) {
-    ownDraft = { id: selectedId, note: $('#travel-note').value, dirty: $('#travel-note').value !== (records[selectedId]?.note ?? '') };
-  }
-  for (const dialog of $$('dialog[open]')) dialog.close();
-  sharedView = next;
-  if (sharedView) records = sharedView.records;
-  else {
-    const own = loadRecords(storage, validIds);
-    records = own.records;
-    storageError = own.error;
-    if (ownDraft) selectedId = ownDraft.id;
-  }
-  renderStats(); renderMapState(); renderList(); renderEditor(); renderSharedMode();
-  if (!sharedView && ownDraft) {
-    if (ownDraft.dirty) {
-      $('#travel-note').value = ownDraft.note;
-      $('#note-count').textContent = ownDraft.note.length;
-      $('#save-status span:last-child').textContent = '未保存のメモがあります';
-    }
-    ownDraft = null;
-  }
-}
-
-window.addEventListener('hashchange', applyLocation);
-$('#shared-exit').addEventListener('click', () => {
-  const page = new URL(window.location.href);
-  const params = new URLSearchParams(page.hash.slice(1));
-  params.delete('share');
-  page.hash = params.toString();
-  window.history.replaceState(window.history.state, '', page.href);
-  applyLocation();
-});
-for (const link of $$('a[href^="#"]')) link.addEventListener('click', event => {
-  if (!sharedView) return;
-  const target = $(link.getAttribute('href'));
-  if (!target) return;
-  event.preventDefault();
-  target.scrollIntoView({ block: 'start' });
-  target.setAttribute('tabindex', '-1');
-  target.focus({ preventScroll: true });
-});
-
 createLevelUI();
-createMap();
+createLevelPresentation(document);
+renderIcons(document);
+bindDialogs(document);
+const mapController = createMapController({ document, getRecords: () => records, getSelectedId: () => selectedId, onSelect: selectCity });
+const cityList = createCityList({ document, getRecords: () => records, getSelectedId: () => selectedId, onSelect: selectCity });
+createShareController({ document, getRecords: () => records, fullViewBox: mapController.fullViewBox, toast, beforeShare: () => !!storageError || flushNote() });
 renderStats();
 renderEditor();
-renderList();
-renderViewbox();
-renderSharedMode();
+updateStorageWarning();

@@ -37,7 +37,7 @@ test('application interactions and persistent records', async t => {
     fire('#import-data', 'change');
     await new Promise(resolve => setImmediate(resolve));
   };
-  await import('../src/app.js');
+  await import('../src/main.js');
 
   await t.test('starts empty with all 179 map boundaries and an editable Sapporo', () => {
     assert.equal(window.document.querySelectorAll('.city-shape').length, 179);
@@ -109,6 +109,23 @@ test('application interactions and persistent records', async t => {
     assert.equal($('#hokkaido-map').getAttribute('viewBox'), originalViewBox);
   });
 
+  await t.test('view link opens a separate page with current levels after saving a note draft', () => {
+    assert.equal($('#shared-view'), null);
+    assert.equal($('#viewer-experience'), null);
+    $('#travel-note').value = '閲覧画面に移る前のメモ';
+    fire('#travel-note', 'input');
+    const viewLink = $('#view-record');
+    // Prevent jsdom navigation after the application has handled the click.
+    viewLink.addEventListener('click', event => event.preventDefault(), { once: true });
+    viewLink.dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
+    assert.equal(stored().records['01202'].note, '閲覧画面に移る前のメモ');
+    assert.equal(new URL(viewLink.href).pathname, '/keidochi/view.html');
+    const snapshot = readSharedLink(viewLink.href).records;
+    assert.equal(snapshot['01100'].level, 4);
+    assert.equal(snapshot['01202'].level, 3);
+    assert.equal(snapshot['01202'].note, '');
+  });
+
   await t.test('X share previews a recorded map and retains a text intent fallback', async () => {
     $('#share-top').click();
     assert.equal($('#share-dialog').open, true);
@@ -126,7 +143,7 @@ test('application interactions and persistent records', async t => {
     assert.match(url.searchParams.get('text'), /7 \/ 895/);
     assert.match(url.searchParams.get('text'), /2 \/ 179/);
     const sharedPage = new URL(url.searchParams.get('url'));
-    assert.equal(sharedPage.origin + sharedPage.pathname, 'https://example.com/keidochi/');
+    assert.equal(sharedPage.origin + sharedPage.pathname, 'https://example.com/keidochi/view.html');
     assert.equal(readSharedLink(sharedPage.href).records['01100'].level, 4);
     assert.equal(readSharedLink(sharedPage.href).records['01202'].level, 3);
     assert.ok(!url.href.includes('script'));

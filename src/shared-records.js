@@ -45,10 +45,17 @@ export function decodeSharedRecords(value) {
   return Object.freeze(records);
 }
 
-export function createRecordLink(records, pageUrl) {
-  const page = new URL(pageUrl);
-  if (!['http:', 'https:'].includes(page.protocol)) throw new Error('HTTPまたはHTTPSのページから共有してください。');
+export function viewPageUrl(pageUrl) {
+  const source = new URL(pageUrl);
+  if (!['http:', 'https:'].includes(source.protocol)) throw new Error('HTTPまたはHTTPSのページから共有してください。');
+  const page = new URL('view.html', source);
   page.search = '';
+  page.hash = source.hash;
+  return page.href;
+}
+
+export function createRecordLink(records, pageUrl) {
+  const page = new URL(viewPageUrl(pageUrl));
   page.hash = new URLSearchParams({ share: encodeSharedRecords(records) }).toString();
   return page.href;
 }
