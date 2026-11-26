@@ -40,8 +40,12 @@
 
   <main id="main">
     <h1 class="sr-only">経道値 — 北海道の旅行記録</h1>
+    <section class="shared-notice" id="shared-view" role="status" hidden>
+      <div><strong id="shared-view-title">共有された記録を表示しています</strong><p id="shared-view-description">閲覧専用です。あなたが入力した記録は変更されません。</p></div>
+      <button class="button secondary" id="shared-exit">自分の記録に戻る</button>
+    </section>
     <section class="overview" aria-label="旅の集計">
-      <div class="score-card"><div class="score-card-top">あなたの経道値</div><div class="score-value"><strong id="total-score">0</strong><span>/ 895 <small>pt</small></span></div><div class="score-track"><span id="score-progress"></span></div><div class="score-card-bottom"><span id="score-message">あと179のまちが、あなたを待っています。</span></div></div>
+      <div class="score-card"><div class="score-card-top" id="score-label">あなたの経道値</div><div class="score-value"><strong id="total-score">0</strong><span>/ 895 <small>pt</small></span></div><div class="score-track"><span id="score-progress"></span></div><div class="score-card-bottom"><span id="score-message">あと179のまちが、あなたを待っています。</span></div></div>
       <div class="overview-item"><span class="overview-icon" data-icon="pin"></span><div><span class="stat-label">足あとを残したまち <small>通過以上</small></span><div class="stat-value"><strong id="touched-count">0</strong><span>/ 179 市町村</span></div></div></div>
       <div class="overview-item"><span class="overview-icon" data-icon="flag"></span><div><span class="stat-label">訪れたまち <small>訪問以上</small></span><div class="stat-value"><strong id="visited-count">0</strong><span>市町村</span></div></div></div>
       <div class="overview-item"><span class="overview-icon" data-icon="moon"></span><div><span class="stat-label">泊まったまち <small>宿泊以上</small></span><div class="stat-value"><strong id="stayed-count">0</strong><span>市町村</span></div></div></div>
@@ -51,7 +55,7 @@
     <div id="storage-warning" class="warning" role="alert" hidden></div>
     <section class="workspace" id="workspace" aria-label="地図から旅を記録">
       <div class="map-card panel">
-        <div class="panel-heading"><div class="map-heading-copy"><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p>市町村を選んで、経験を記録しましょう。</p></div><span class="small-tag">全179市町村</span></div>
+        <div class="panel-heading"><div class="map-heading-copy"><h2><span class="heading-icon" data-icon="map"></span>旅の足あとマップ</h2><p id="map-guidance">市町村を選んで、経験を記録しましょう。</p></div><span class="small-tag">全179市町村</span></div>
         <div class="map-canvas" id="map-canvas">
           <span class="map-coordinate top-left">45° N / 139° E</span><span class="map-coordinate bottom-right">HOKKAIDO, JAPAN</span>
           <svg class="hokkaido-map" id="hokkaido-map" viewBox="105 5 650 570" aria-labelledby="map-title map-description"><title id="map-title">北海道179市町村の経験マップ</title><desc id="map-description">市町村をクリック、またはTabキーとEnterキーで選択できます。下の一覧からも検索できます。</desc><g id="map-shapes"></g><g id="map-labels" aria-hidden="true"></g></svg>
@@ -115,8 +119,11 @@
       <button class="button primary full-width" id="share-native" hidden>画像付きで共有</button>
       <button class="button secondary" id="share-download" disabled>画像を保存（PNG）</button>
       <button class="button share-button" id="share-x"><span class="x-icon" aria-hidden="true">𝕏</span>Xの投稿画面を開く</button>
+      <button class="button secondary" id="share-copy-link">記録付きリンクをコピー</button>
       <button class="button secondary" id="share-retry" hidden>画像を作り直す</button>
     </div>
+    <div id="share-link-field" class="share-link-field" hidden><label for="share-link-url">記録付き共有リンク</label><input id="share-link-url" type="url" readonly spellcheck="false"></div>
+    <p class="dialog-caption">共有リンクには各市町村の経験レベルを含めます。メモは含めません。リンクを開いても、相手の記録は変更されません。</p>
   </dialog>
 
   <dialog id="about-dialog" class="dialog"><div class="dialog-top"><span class="eyebrow">ABOUT KEIDOCHI</span><button class="icon-button close-dialog" aria-label="閉じる">×</button></div><h2>北海道との、距離を縮める。</h2><p>経道値（けいどうち）は、北海道179市町村の旅行経験を記録するアプリです。旅先との関わりの深さを色とポイントで残せます。</p><div class="help-note"><h3>登録不要。このブラウザーに保存。</h3><p>画像の作成と保存はこのブラウザー内で行います。シェアでは経道値・市町村数・経験を色分けした地図画像を共有できます。メモは共有されません。</p></div><p>ブラウザーや端末を変えると記録は引き継がれません。データ管理からバックアップを保存・読み込みしてください。プライベートブラウズでは終了時に消える場合があります。</p><p class="dialog-caption">対象の市町村は<a href="https://www.pref.hokkaido.lg.jp/link/shichoson/" target="_blank" rel="noopener noreferrer">北海道公式の179市町村一覧</a>に準拠。札幌市は区を分けず1市として記録します。地図は北海道公開の行政界データを簡略化したもので、境界の厳密な表示を目的としません。</p><button class="button primary close-dialog full-width">閉じる</button></dialog>

@@ -1,3 +1,5 @@
+import { createRecordLink, readSharedLink } from './shared-records.js';
+
 export const STORAGE_KEY = 'keidochi.records.v1';
 export const LEVELS = [
   { label: '未踏', description: 'まだ行ったことがない', color: '#adc4d1' },
@@ -72,12 +74,12 @@ export function progressMessage(touched) {
 export function shareUrl(records, pageUrl) {
   const { score, touched } = summarize(records);
   const url = new URL('https://twitter.com/intent/tweet');
-  url.searchParams.set('text', `私の経道値は ${score} / 895 pt！\n北海道 ${touched} / 179 市町村に足あとを残しました。\n${progressMessage(touched)}`);
+  const subject = readSharedLink(pageUrl) ? '共有された経道値は' : '私の経道値は';
+  url.searchParams.set('text', `${subject} ${score} / 895 pt！\n北海道 ${touched} / 179 市町村に足あとを残しました。\n${progressMessage(touched)}`);
   url.searchParams.set('hashtags', '経道値');
   const page = new URL(pageUrl);
   if (!['localhost', '127.0.0.1', '[::1]'].includes(page.hostname) && /^https?:$/.test(page.protocol)) {
-    page.search = ''; page.hash = '';
-    url.searchParams.set('url', page.href);
+    url.searchParams.set('url', createRecordLink(records, page.href));
   }
   return url.href;
 }

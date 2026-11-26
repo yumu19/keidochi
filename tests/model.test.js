@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readSharedLink } from '../src/shared-records.js';
 import { municipalities } from '../src/municipalities.js';
 import { LEVELS, STORAGE_KEY, validatePayload, loadRecords, saveRecords, summarize, filterMunicipalities, shareUrl } from '../src/model.js';
 
@@ -102,7 +103,10 @@ test('X share contains aggregate results, excludes notes and omits local preview
   assert.match(url.searchParams.get('text'), /1 \/ 179/);
   assert.match(url.searchParams.get('text'), /あと178のまちが、あなたを待っています。/);
   assert.equal(url.searchParams.get('hashtags'), '経道値');
-  assert.equal(url.searchParams.get('url'), 'https://example.com/keidochi/');
+  const sharedPage = new URL(url.searchParams.get('url'));
+  assert.equal(sharedPage.origin + sharedPage.pathname, 'https://example.com/keidochi/');
+  assert.equal(sharedPage.search, '');
+  assert.equal(readSharedLink(sharedPage.href).records['01100'].level, 4);
   assert.ok(!url.href.includes('private'));
   assert.ok(!new URL(shareUrl(records, 'http://localhost:4173/')).searchParams.has('url'));
   const completedRecords = Object.fromEntries([...validIds].map(id => [id, record(1)]));

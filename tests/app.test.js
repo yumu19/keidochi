@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 import { resolveObjectURL } from 'node:buffer';
 import { STORAGE_KEY } from '../src/model.js';
+import { readSharedLink } from '../src/shared-records.js';
 
 test('application interactions and persistent records', async t => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
@@ -124,7 +125,10 @@ test('application interactions and persistent records', async t => {
     assert.equal(url.hostname, 'twitter.com');
     assert.match(url.searchParams.get('text'), /7 \/ 895/);
     assert.match(url.searchParams.get('text'), /2 \/ 179/);
-    assert.equal(url.searchParams.get('url'), 'https://example.com/keidochi/');
+    const sharedPage = new URL(url.searchParams.get('url'));
+    assert.equal(sharedPage.origin + sharedPage.pathname, 'https://example.com/keidochi/');
+    assert.equal(readSharedLink(sharedPage.href).records['01100'].level, 4);
+    assert.equal(readSharedLink(sharedPage.href).records['01202'].level, 3);
     assert.ok(!url.href.includes('script'));
     assert.equal(clickedAnchor.target, '_blank');
     assert.match(clickedAnchor.rel, /noopener/);
@@ -304,5 +308,5 @@ test('application interactions and persistent records', async t => {
     assert.equal(stored().records['01202'].level, 1);
   });
 
-  // Let the app's toast timeout finish against its live document; no external resources are loaded.
+  dom.window.close();
 });

@@ -56,6 +56,16 @@ main{max-width:1600px;padding:0 28px;margin:0 auto}.eyebrow{display:flex;align-i
 .share-dialog .share-instructions{font-size:14px;background:#f0f4e8;border-radius:6px;padding:12px 14px;margin:15px 0;line-height:1.9}
 .share-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
 .share-actions>.button:not(.full-width){flex:1;min-width:160px}
+.shared-notice{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 22px;margin-top:24px;background:#e9f5ee;border:1px solid #c4dbce;border-radius:8px}
+.shared-notice strong{font-size:16px}
+.shared-notice p{font-size:14px;color:#456556;line-height:1.8;margin:6px 0 0}
+.shared-notice .button{flex:none}
+.shared-notice.invalid{background:#fff6e6;border-color:#ecd6ad}
+.viewing-shared-record .experience-option:has(input:disabled){opacity:1;cursor:default}
+.share-link-field{margin-top:16px}
+.share-link-field label{display:block;margin-bottom:6px;font-size:14px}
+.share-link-field input{display:block;width:100%;min-height:48px;padding:10px 12px;border:1px solid #cddac9;border-radius:5px;font-size:16px;color:var(--ink);background:#f8faf4}
+@media(max-width:600px){.shared-notice{flex-direction:column;align-items:stretch;gap:14px;padding:16px}.shared-notice .button{align-self:flex-start}}
 .map-legend{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:24px;padding:18px 18px 10px}
 .legend-item{display:flex;align-items:center;gap:7px;font-size:14px;color:#3b5053}
 .legend-item small{font:13px Georgia,serif;color:#66797d}

@@ -1,6 +1,7 @@
 import { municipalities } from './municipalities.js';
 import { populations } from './population.js';
 import { createShareSvg, createShareImage, canShareImage, imageShareData } from './share-image.js';
+import { createRecordLink, readSharedLink } from './shared-records.js';
 import { LEVELS, STORAGE_KEY, loadRecords, saveRecords, summarize, filterMunicipalities, shareUrl, validatePayload, progressMessage } from './model.js';
 
 const $ = selector => document.querySelector(selector);
@@ -10,8 +11,10 @@ const validIds = new Set(byId.keys());
 let storage;
 try { storage = window.localStorage; } catch { storage = null; }
 const loaded = loadRecords(storage, validIds);
-let records = loaded.records;
+let sharedView = readSharedLink(window.location.href);
+let records = sharedView ? sharedView.records : loaded.records;
 let storageError = loaded.error;
+let ownDraft = null;
 let selectedId = '01100';
 let showAll = false;
 let noteTimer;
@@ -43,17 +46,17 @@ for (const element of $$('[data-icon]')) {
 }
 
 function toast(message, isError = false) {
-  clearTimeout(toastTimer);
+  window.clearTimeout(toastTimer);
   $('#toast').textContent = message;
   $('#toast').classList.toggle('error', isError);
   $('#toast').hidden = false;
-  toastTimer = setTimeout(() => { $('#toast').hidden = true; }, isError ? 6500 : 3200);
+  toastTimer = window.setTimeout(() => { $('#toast').hidden = true; }, isError ? 6500 : 3200);
 }
 
 function updateStorageWarning() {
   const warning = $('#storage-warning');
-  warning.hidden = !storageError;
-  $('#local-status').classList.toggle('failed', !!storageError);
+  warning.hidden = !!sharedView || !storageError;
+  $('#local-status').classList.toggle('failed', !sharedView && !!storageError);
   $('#local-status').title = storageError ? '保存データを確認してください。クリックしてバックアップ・復元を開きます。' : '記録のバックアップ・復元を開く';
   if (storageError) {
     warning.replaceChildren(document.createTextNode('保存した記録を読み込めませんでした。既存データを保護するため記録を停止しています。保存機能が有効か確認し、バックアップを読み込むか、データ管理からリセットしてください。'));
@@ -62,11 +65,16 @@ function updateStorageWarning() {
     button.addEventListener('click', () => openDialog('data-dialog'));
     warning.append(button);
   }
-  for (const input of $$('input[name="experience"]')) input.disabled = !!storageError;
-  $('#travel-note').disabled = !!storageError;
+  for (const input of $$('input[name="experience"]')) input.disabled = !!sharedView || !!storageError;
+  $('#travel-note').disabled = !!sharedView || !!storageError;
+  for (const button of $$('.data-open')) button.disabled = !!sharedView;
 }
 
 function commit(nextRecords, { recover = false } = {}) {
+  if (sharedView || readSharedLink(window.location.href)) {
+    toast('共有された記録は閲覧専用です。自分の記録に戻ってから操作してください。', true);
+    return false;
+  }
   if (storageError && !recover) {
     toast('保存できない状態です。データ管理を確認してください。', true);
     return false;
@@ -89,6 +97,7 @@ function commit(nextRecords, { recover = false } = {}) {
 }
 
 function saveSelected(level = records[selectedId]?.level ?? 0, note = $('#travel-note').value) {
+  if (sharedView) return true;
   const previous = records[selectedId];
   const nextNote = note.slice(0, 200);
   if ((previous?.level ?? 0) === level && (previous?.note ?? '') === nextNote) return true;
@@ -102,7 +111,7 @@ function saveSelected(level = records[selectedId]?.level ?? 0, note = $('#travel
 }
 
 function flushNote() {
-  clearTimeout(noteTimer);
+  window.clearTimeout(noteTimer);
   return saveSelected();
 }
 
@@ -224,7 +233,7 @@ function renderEditor() {
   for (const input of $$('input[name="experience"]')) input.checked = Number(input.value) === level;
   $('#travel-note').value = records[selectedId]?.note ?? '';
   $('#note-count').textContent = $('#travel-note').value.length;
-  $('#save-status span:last-child').textContent = records[selectedId] ? 'このブラウザーに保存済み' : '選んだ経験を自動で保存します';
+  $('#save-status span:last-child').textContent = sharedView ? '共有された記録を表示中（閲覧専用）' : records[selectedId] ? 'このブラウザーに保存済み' : '選んだ経験を自動で保存します';
   updateEditorBadge();
 }
 
@@ -246,7 +255,8 @@ function createLevelUI() {
     option.className = 'experience-option';
     option.innerHTML = `<input type="radio" name="experience" value="${index}" aria-label="${level.label} ${index}ポイント：${level.description}"><span class="option-dot" style="background:${level.color}"></span><span class="option-copy"><strong>${level.label}</strong><small>${level.description}</small></span><span class="option-points">${index}<small>pt</small></span><span class="option-check" aria-hidden="true"></span>`;
     option.querySelector('input').addEventListener('change', () => {
-      clearTimeout(noteTimer);
+      window.clearTimeout(noteTimer);
+      if (sharedView) { renderEditor(); return; }
       if (!saveSelected(index)) {
         for (const input of $$('input[name="experience"]')) input.checked = Number(input.value) === (records[selectedId]?.level ?? 0);
         $('#save-status span:last-child').textContent = '保存できませんでした。メモをコピーして保管してください';
@@ -287,7 +297,7 @@ function renderList() {
     const item = document.createElement('button');
     item.className = `city-list-item${selectedId === city.id ? ' active' : ''}`;
     item.dataset.cityId = city.id;
-    item.setAttribute('aria-label', `${city.name}、${LEVELS[level].label}。記録を編集`);
+    item.setAttribute('aria-label', `${city.name}、${LEVELS[level].label}。${sharedView ? '共有された経験を確認' : '記録を編集'}`);
     item.innerHTML = `<span class="color-dot" style="--dot-color:${LEVELS[level].color}"></span><span class="list-city-name">${city.name}<small>${city.region}</small></span><span class="list-city-level">${LEVELS[level].label}</span><span class="city-chevron" aria-hidden="true">›</span>`;
     item.addEventListener('click', () => {
       selectCity(city.id);
@@ -321,10 +331,11 @@ $('#show-all').addEventListener('click', () => {
   if (!showAll) $('#municipalities').scrollIntoView({ block: 'start' });
 });
 $('#travel-note').addEventListener('input', () => {
+  if (sharedView) { renderEditor(); return; }
   $('#note-count').textContent = $('#travel-note').value.length;
   $('#save-status span:last-child').textContent = '保存中…';
-  clearTimeout(noteTimer);
-  noteTimer = setTimeout(() => {
+  window.clearTimeout(noteTimer);
+  noteTimer = window.setTimeout(() => {
     if (!flushNote()) $('#save-status span:last-child').textContent = '保存できませんでした。メモをコピーして保管してください';
   }, 450);
 });
@@ -381,6 +392,7 @@ $('#hokkaido-map').addEventListener('pointercancel', endDrag);
 $('#hokkaido-map').addEventListener('pointerleave', () => { if (!dragging) pointerStart = null; });
 
 function openDialog(id) {
+  if (sharedView && id === 'data-dialog') return;
   if (!storageError && !flushNote()) return;
   $(`#${id}`).showModal();
 }
@@ -406,6 +418,7 @@ $('#data-dialog').addEventListener('close', () => {
 let shareFile = null;
 let sharePreviewUrl = null;
 let shareIntentUrl = '';
+let shareRecordUrl = '';
 let shareGeneration = 0;
 
 function clearShareImage() {
@@ -427,8 +440,11 @@ async function prepareShareImage() {
   $('#share-instructions').hidden = true;
   const snapshot = { ...records };
   shareIntentUrl = shareUrl(snapshot, window.location.href);
+  shareRecordUrl = createRecordLink(snapshot, window.location.href);
+  $('#share-link-field').hidden = true;
+  $('#share-link-url').value = shareRecordUrl;
   try {
-    const svg = createShareSvg($('#hokkaido-map'), snapshot, `${mapLeft} ${mapTop} ${mapWidth} ${mapHeight}`);
+    const svg = createShareSvg($('#hokkaido-map'), snapshot, `${mapLeft} ${mapTop} ${mapWidth} ${mapHeight}`, { shared: !!sharedView });
     const file = await createShareImage(svg);
     if (generation !== shareGeneration || !$('#share-dialog').open) return;
     shareFile = file;
@@ -454,6 +470,7 @@ async function prepareShareImage() {
 }
 
 function share() {
+  if (sharedView?.error) return;
   if (!storageError && !flushNote()) return;
   if ($('#share-dialog').open) return;
   $('#share-dialog').showModal();
@@ -461,6 +478,19 @@ function share() {
 }
 $('#share-top').addEventListener('click', share);
 $('#share-bottom').addEventListener('click', share);
+$('#share-copy-link').addEventListener('click', async () => {
+  if (!shareRecordUrl) return;
+  try {
+    if (!window.navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+    await window.navigator.clipboard.writeText(shareRecordUrl);
+    toast('記録付きリンクをコピーしました');
+  } catch {
+    $('#share-link-field').hidden = false;
+    $('#share-link-url').focus();
+    $('#share-link-url').select();
+    toast('リンクを選択しました。コピーして共有してください。');
+  }
+});
 $('#share-retry').addEventListener('click', () => { void prepareShareImage(); });
 $('#share-dialog').addEventListener('close', () => {
   shareGeneration++;
@@ -502,6 +532,7 @@ $('#share-native').addEventListener('click', async () => {
 });
 
 $('#export-data').addEventListener('click', () => {
+  if (sharedView) return;
   if (storageError) { toast('既存データを正常に読み込めないため、書き出せません。', true); return; }
   if (!flushNote()) return;
   const blob = new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), records }, null, 2)], { type: 'application/json' });
@@ -512,12 +543,13 @@ $('#export-data').addEventListener('click', () => {
   link.href = url;
   link.download = `keidochi-backup-${date}.json`;
   link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   toast('バックアップを書き出しました');
 });
 
-$('#import-open').addEventListener('click', () => $('#import-data').click());
+$('#import-open').addEventListener('click', () => { if (!sharedView) $('#import-data').click(); });
 $('#import-data').addEventListener('change', async event => {
+  if (sharedView) return;
   const file = event.target.files?.[0];
   if (!file) return;
   $('#import-error').hidden = true;
@@ -540,7 +572,7 @@ $('#import-data').addEventListener('change', async event => {
 $('#cancel-import').addEventListener('click', () => { pendingImport = null; $('#import-preview').hidden = true; });
 $('#confirm-import').addEventListener('click', () => {
   if (!pendingImport) return;
-  clearTimeout(noteTimer);
+  window.clearTimeout(noteTimer);
   if (commit(pendingImport, { recover: true })) {
     renderEditor();
     pendingImport = null;
@@ -551,7 +583,7 @@ $('#confirm-import').addEventListener('click', () => {
 $('#reset-open').addEventListener('click', () => { $('#reset-confirm').hidden = false; $('#import-preview').hidden = true; pendingImport = null; });
 $('#reset-cancel').addEventListener('click', () => { $('#reset-confirm').hidden = true; });
 $('#reset-confirm-button').addEventListener('click', () => {
-  clearTimeout(noteTimer);
+  window.clearTimeout(noteTimer);
   if (commit(Object.create(null), { recover: true })) {
     renderEditor();
     $('#data-dialog').close();
@@ -562,6 +594,7 @@ $('#reset-confirm-button').addEventListener('click', () => {
 // Keep other tabs in sync while preserving the current note draft.
 window.addEventListener('storage', event => {
   if (event.key !== STORAGE_KEY && event.key !== null) return;
+  if (sharedView) return;
   const hasDraft = $('#travel-note').value !== (records[selectedId]?.note ?? '');
   const result = loadRecords(storage, validIds);
   records = result.records;
@@ -574,10 +607,73 @@ window.addEventListener('storage', event => {
   } else renderEditor();
 });
 
+function renderSharedMode() {
+  document.body.classList.toggle('viewing-shared-record', !!sharedView);
+  $('#shared-view').hidden = !sharedView;
+  $('#shared-view').classList.toggle('invalid', !!sharedView?.error);
+  $('#shared-view-title').textContent = sharedView?.error ? '共有リンクのデータを読み込めませんでした' : '共有された記録を表示しています';
+  $('#shared-view-description').textContent = sharedView?.error
+    ? 'リンクが不正か、対応していない形式です。自分の記録は変更していません。'
+    : '閲覧専用です。あなたが入力した記録は変更されません。共有リンクにメモは含まれません。';
+  $('#score-label').textContent = sharedView ? '共有された経道値' : 'あなたの経道値';
+  $('#map-guidance').textContent = sharedView ? '市町村を選んで、共有された経験を確認できます。' : '市町村を選んで、経験を記録しましょう。';
+  $('#travel-note').placeholder = sharedView ? '共有リンクにメモは含まれません' : 'お気に入りの景色、おいしかったもの…';
+  updateStorageWarning();
+  if (sharedView) $('#local-status').title = '自分の記録に戻ると、バックアップ・復元を利用できます。';
+  $('#share-top').disabled = !!sharedView?.error;
+  $('#share-bottom').disabled = !!sharedView?.error;
+}
+
+function applyLocation() {
+  const next = readSharedLink(window.location.href);
+  if (!sharedView && !next) return;
+  window.clearTimeout(noteTimer);
+  if (!sharedView && next) {
+    ownDraft = { id: selectedId, note: $('#travel-note').value, dirty: $('#travel-note').value !== (records[selectedId]?.note ?? '') };
+  }
+  for (const dialog of $$('dialog[open]')) dialog.close();
+  sharedView = next;
+  if (sharedView) records = sharedView.records;
+  else {
+    const own = loadRecords(storage, validIds);
+    records = own.records;
+    storageError = own.error;
+    if (ownDraft) selectedId = ownDraft.id;
+  }
+  renderStats(); renderMapState(); renderList(); renderEditor(); renderSharedMode();
+  if (!sharedView && ownDraft) {
+    if (ownDraft.dirty) {
+      $('#travel-note').value = ownDraft.note;
+      $('#note-count').textContent = ownDraft.note.length;
+      $('#save-status span:last-child').textContent = '未保存のメモがあります';
+    }
+    ownDraft = null;
+  }
+}
+
+window.addEventListener('hashchange', applyLocation);
+$('#shared-exit').addEventListener('click', () => {
+  const page = new URL(window.location.href);
+  const params = new URLSearchParams(page.hash.slice(1));
+  params.delete('share');
+  page.hash = params.toString();
+  window.history.replaceState(window.history.state, '', page.href);
+  applyLocation();
+});
+for (const link of $$('a[href^="#"]')) link.addEventListener('click', event => {
+  if (!sharedView) return;
+  const target = $(link.getAttribute('href'));
+  if (!target) return;
+  event.preventDefault();
+  target.scrollIntoView({ block: 'start' });
+  target.setAttribute('tabindex', '-1');
+  target.focus({ preventScroll: true });
+});
+
 createLevelUI();
 createMap();
 renderStats();
 renderEditor();
 renderList();
 renderViewbox();
-updateStorageWarning();
+renderSharedMode();

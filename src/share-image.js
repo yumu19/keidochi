@@ -3,7 +3,7 @@ import { LEVELS, summarize } from './model.js';
 const escapeXml = value => String(value).replace(/[<>&"']/g, character => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;' })[character]);
 
 /** Capture the recorded map at full extent, without editor controls or personal notes. */
-export function createShareSvg(map, records, viewBox) {
+export function createShareSvg(map, records, viewBox, { shared = false } = {}) {
   const snapshot = map.cloneNode(true);
   snapshot.setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns', 'http://www.w3.org/2000/svg');
   snapshot.setAttribute('viewBox', viewBox);
@@ -54,7 +54,7 @@ export function createShareSvg(map, records, viewBox) {
       <text x="64" y="79" font-size="40" font-weight="700" fill="#264f43">経道値 <tspan font-size="24" letter-spacing="3">KEIDOCHI</tspan></text>
       <text x="1136" y="74" text-anchor="end" font-size="24" fill="#637666">北海道179市町村の旅の記録</text>
       <rect x="48" y="109" width="1104" height="112" rx="15" fill="#234c40"/>
-      <text x="74" y="145" font-size="24" fill="#d9e6cb">私の経道値</text>
+      <text x="74" y="145" font-size="24" fill="#d9e6cb">${shared ? '共有された経道値' : '私の経道値'}</text>
       <text x="74" y="198" font-size="53" font-weight="700" fill="#ffffff">${score}<tspan dx="12" font-size="24" font-weight="400" fill="#d9e6cb">/ 895 pt</tspan></text>
       <text x="465" y="153" font-size="24" fill="#d9e6cb">足あとを残したまち</text>
       <text x="465" y="193" font-size="31" fill="#ffffff">${touched}<tspan font-size="24"> / 179</tspan></text>
